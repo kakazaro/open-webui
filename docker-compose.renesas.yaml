@@ -1,14 +1,12 @@
 services:
   open-webui:
-    build:
-      context: .
-      dockerfile: Dockerfile.renesas
-    image: open-webui:0.1.0
+    image: kakazaro/open-webui:latest # pull from docker hub
+    pull_policy: always # always try to pull the newest image
     container_name: open-webui
     volumes:
       - open-webui:/app/backend/data
     ports:
-      - ${OPEN_WEBUI_PORT-3000}:8080
+      - 7380:8080 # expose port 7380
     environment:
       - 'ENABLE_OLLAMA_API=False'
       - 'WEBUI_SECRET_KEY='
