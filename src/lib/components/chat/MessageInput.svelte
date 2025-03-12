@@ -27,7 +27,7 @@
 	import { generateAutoCompletion } from '$lib/apis';
 	import { deleteFileById } from '$lib/apis/files';
 
-	import { WEBUI_BASE_URL, WEBUI_API_BASE_URL, PASTED_TEXT_CHARACTER_LIMIT } from '$lib/constants';
+	import { WEBUI_BASE_URL, WEBUI_API_BASE_URL, PASTED_TEXT_CHARACTER_LIMIT, CODING_COMMANDS } from '$lib/constants';
 
 	import InputMenu from './MessageInput/InputMenu.svelte';
 	import CommandMenu from './MessageInput/CommandMenu.svelte';
@@ -1172,9 +1172,17 @@
 										<CommandMenu
 											onClose={async () => {
 												await tick();
-
+												// TODO: renesas
 												const chatInput = document.getElementById('chat-input');
 												chatInput?.focus();
+											}}
+											onChoose={(cmd) => {
+												let clonePrompt = prompt;
+												CODING_COMMANDS.forEach((c) => {
+													clonePrompt = clonePrompt.replaceAll(`/${c.value}`, '');
+													clonePrompt = clonePrompt.replaceAll(`/${c.value} `, '');
+												});
+												prompt = `${cmd} ${clonePrompt || ''}`;
 											}}
 											/>
 

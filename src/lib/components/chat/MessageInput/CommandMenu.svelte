@@ -1,15 +1,14 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
 	import { flyAndScale } from '$lib/utils/transitions';
-	import { getContext, onMount, tick } from 'svelte';
 
-	import { config, user, tools as _tools, mobile } from '$lib/stores';
-
-
-	const i18n = getContext('i18n');
+	import { CODING_COMMANDS } from '$lib/constants';
 
 	export let onClose: Function;
+	export let onChoose: Function;
 
+	// TODO: renesas
+	let commands = CODING_COMMANDS;
 </script>
 
 <DropdownMenu.Root
@@ -27,15 +26,8 @@
 			type="button"
 			aria-label="More"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 20 20"
-				fill="currentColor"
-				class="size-5"
-			>
-				<path
-					d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"
-				/>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+				<path d="M13 3 L7 17" stroke="currentColor" stroke-width="2"/>
 			</svg>
 		</button>
 	</DropdownMenu.Trigger>
@@ -48,13 +40,15 @@
 		align="start"
 		transition={flyAndScale}
 	>
-
-		<DropdownMenu.Item
-			class="flex gap-2 items-center px-3 py-2 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
-			on:click={() => {
+		{#each commands as command}
+			<DropdownMenu.Item
+				class="flex gap-2 items-center px-3 py-2 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+				on:click={() => {
+				onChoose(`/${command.value}`)
 			}}
-		>
-			<div class="line-clamp-1">{$i18n.t('Upload Files')}</div>
-		</DropdownMenu.Item>
+			>
+				<div class="line-clamp-1">{command.title}</div>
+			</DropdownMenu.Item>
+		{/each}
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
