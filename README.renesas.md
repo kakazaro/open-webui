@@ -49,7 +49,7 @@ For local development, follow these steps:
 
 Required **Python 3.11**
 
-1. **Go to /backend dir and run**
+1. **Go to `/backend` dir and run**
    ```bash
    cd ./backend
    ```  
