@@ -1,7 +1,7 @@
 services:
   open-webui:
     image: kakazaro/open-webui:latest # pull from docker hub
-    pull_policy: always # always try to pull the newest image
+#    pull_policy: always # always try to pull the newest image
     container_name: open-webui
     volumes:
       - open-webui:/app/backend/data

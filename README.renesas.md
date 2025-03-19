@@ -36,6 +36,8 @@ docker compose -f docker-compose.renesas.yaml down
 
 For local development, follow these steps:
 
+### Backend setup (option 1)
+
 1. **Clone the Docker Compose File**
     - Copy `docker-compose.renesas.yaml` to `docker-compose.local.yaml`.
     - Modify the exposed port to `8080` to avoid conflicts.
@@ -43,10 +45,30 @@ For local development, follow these steps:
 2. **Run Web Backend Instance**
     - Start the backend using the modified `docker-compose.local.yaml`.
 
-3. **Run Web Frontend**
+### Backend setup (option 2)
+
+Required **Python 3.11**
+
+1. **Go to /backend dir and run**
+   ```bash
+   cd ./backend
+   ```  
+
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt -U
+   ```  
+
+3. **Start the backend:**
+   ```bash
+   uvicorn open_webui.main:app --port 8080 --host 0.0.0.0 --forwarded-allow-ips '*' --reload
+   ```  
+
+### Web Frontend
+
+1. **Run Web Frontend**
     - NodeJS version: 22.x.x
     - Start the frontend using:
-
-```bash
-npm run dev
-```
+   ```bash
+   npm run dev
+   ```
