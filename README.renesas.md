@@ -44,8 +44,9 @@ For local development, follow these steps:
     - Start the backend using the modified `docker-compose.local.yaml`.
 
 3. **Run Web Frontend**
+    - NodeJS version: 22.x.x
     - Start the frontend using:
 
-   ```bash
-   npm run dev
-   ```
+```bash
+npm run dev
+```
