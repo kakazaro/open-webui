@@ -11,6 +11,7 @@
 	} from '$lib/utils';
 	import { tick, getContext } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { CODING_COMMANDS } from '$lib/constants';
 
 	const i18n = getContext('i18n');
 
@@ -22,9 +23,9 @@
 	let selectedPromptIdx = 0;
 	let filteredPrompts = [];
 
-	$: filteredPrompts = $prompts
-		.filter((p) => p.command.toLowerCase().includes(command.toLowerCase()))
-		.sort((a, b) => a.title.localeCompare(b.title));
+	$: filteredPrompts = ($prompts?.length ? $prompts : CODING_COMMANDS)
+		.filter((p) => p.command.toLowerCase().includes(command.toLowerCase()));
+		// .sort((a, b) => a.title.localeCompare(b.title));
 
 	$: if (command) {
 		selectedPromptIdx = 0;
@@ -39,9 +40,9 @@
 	};
 
 	const confirmPrompt = async (command) => {
-		let text = command.content;
+		let text = command.content || command.command;
 
-		if (command.content.includes('{{CLIPBOARD}}')) {
+		if (text.includes('{{CLIPBOARD}}')) {
 			const clipboardText = await navigator.clipboard.readText().catch((err) => {
 				toast.error($i18n.t('Failed to read clipboard contents'));
 				return '{{CLIPBOARD}}';
@@ -73,7 +74,7 @@
 			text = text.replaceAll('{{CLIPBOARD}}', clipboardText);
 		}
 
-		if (command.content.includes('{{USER_LOCATION}}')) {
+		if (text.includes('{{USER_LOCATION}}')) {
 			let location;
 			try {
 				location = await getUserPosition();
@@ -84,43 +85,43 @@
 			text = text.replaceAll('{{USER_LOCATION}}', String(location));
 		}
 
-		if (command.content.includes('{{USER_NAME}}')) {
+		if (text.includes('{{USER_NAME}}')) {
 			console.log($user);
 			const name = $user.name || 'User';
 			text = text.replaceAll('{{USER_NAME}}', name);
 		}
 
-		if (command.content.includes('{{USER_LANGUAGE}}')) {
+		if (text.includes('{{USER_LANGUAGE}}')) {
 			const language = localStorage.getItem('locale') || 'en-US';
 			text = text.replaceAll('{{USER_LANGUAGE}}', language);
 		}
 
-		if (command.content.includes('{{CURRENT_DATE}}')) {
+		if (text.includes('{{CURRENT_DATE}}')) {
 			const date = getFormattedDate();
 			text = text.replaceAll('{{CURRENT_DATE}}', date);
 		}
 
-		if (command.content.includes('{{CURRENT_TIME}}')) {
+		if (text.includes('{{CURRENT_TIME}}')) {
 			const time = getFormattedTime();
 			text = text.replaceAll('{{CURRENT_TIME}}', time);
 		}
 
-		if (command.content.includes('{{CURRENT_DATETIME}}')) {
+		if (text.includes('{{CURRENT_DATETIME}}')) {
 			const dateTime = getCurrentDateTime();
 			text = text.replaceAll('{{CURRENT_DATETIME}}', dateTime);
 		}
 
-		if (command.content.includes('{{CURRENT_TIMEZONE}}')) {
+		if (text.includes('{{CURRENT_TIMEZONE}}')) {
 			const timezone = getUserTimezone();
 			text = text.replaceAll('{{CURRENT_TIMEZONE}}', timezone);
 		}
 
-		if (command.content.includes('{{CURRENT_WEEKDAY}}')) {
+		if (text.includes('{{CURRENT_WEEKDAY}}')) {
 			const weekday = getWeekday();
 			text = text.replaceAll('{{CURRENT_WEEKDAY}}', weekday);
 		}
 
-		prompt = text;
+		prompt = text + ` ${prompt.replaceAll(/\/(\w+)*/g, '').trim()}`;
 
 		const chatInputContainerElement = document.getElementById('chat-input-container');
 		const chatInputElement = document.getElementById('chat-input');

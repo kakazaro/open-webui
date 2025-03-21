@@ -574,33 +574,27 @@ async def verify_connection(
 # TODO: renesas
 CODING_COMMANDS = [
     {
-        "value": "code_review",
-        "title": "Code Review",
+        "command": "code_review",
         "replace": "Please review the code (Consider: 1. Code quality and adherence to best practices 2. Potential bugs or edge cases 3. Performance optimizations 4. Readability and maintainability 5. Any security concerns Suggest improvements and explain your reasoning for each suggestion.)"
     },
     {
-        "value": "code_refactor",
-        "title": "Code Refactor",
+        "command": "code_refactor",
         "replace": "please go through the following thought process to refactor it according to coding guidelines: 1. Analyze the current structure and identify areas for improvement. 2. Consider best practices in code organization, readability, and efficiency. 3. Gather relevant coding standards or conventions that apply. 4. After this analysis, present the refactored code snippet and a brief summary of the improvements made. Refactor the code snippet above according to the guidelines and provide: - The optimized code snippet only. - A few bullet points highlighting the changes and improvements made."
     },
     {
-        "value": "code_explain",
-        "title": "Code Explain",
+        "command": "code_explain",
         "replace": "Provide a detailed explanation of the code snippet. Begin with a concise overview of its main purpose, then generate a series of reasoning steps that break down each statement. For each statement, clarify its function, expected outcome, and any external information or context needed to understand it fully. If necessary, suggest actions to explore related details or examples that could enhance comprehension."
     },
     {
-        "value": "code_generation_C",
-        "title": "Code generation (C/C++)",
-        "replace": "Provide a detailed explanation of the code snippet. Begin with a concise overview of its main purpose, then generate a series of reasoning steps that break down each statement. For each statement, clarify its function, expected outcome, and any external information or context needed to understand it fully. If necessary, suggest actions to explore related details or examples that could enhance comprehension."
+        "command": "code_generation_C",
+        "replace": "Create C/C++ code to realize the description below. Please include enough comments and error handling."
     },
     {
-        "value": "code_generation_Py",
-        "title": "Code generation (Python)",
+        "command": "code_generation_Py",
         "replace": "Create Python code to realize the description below. Please include enough comments and error handling."
     },
     {
-        "value": "unit_test_generation",
-        "title": "Unit test generation",
+        "command": "unit_test_generation",
         "replace": "Write a comprehensive set of unit tests for the selected code. It should setup, run tests that check for correctness including important edge cases, and teardown. Ensure that the tests are complete and sophisticated. Give the tests just as chat output."
     },
 ]
@@ -609,8 +603,8 @@ CODING_COMMANDS = [
 def replace_command_in_payload(payload):
     if payload["messages"][-1]["content"]:
         for command in CODING_COMMANDS:
-            if f"/{command['value']}" in payload["messages"][-1]["content"]:
-                payload["messages"][-1]["content"] = re.sub(f"/{command['value']}", command["replace"], payload["messages"][-1]["content"])
+            if f"/{command['command']}" in payload["messages"][-1]["content"]:
+                payload["messages"][-1]["content"] = re.sub(f"/{command['command']}", command["replace"], payload["messages"][-1]["content"])
                 break
 
 

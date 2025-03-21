@@ -44,7 +44,7 @@
 			<DropdownMenu.Item
 				class="flex gap-2 items-center px-3 py-2 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
 				on:click={() => {
-				onChoose(`/${command.value}`)
+				onChoose(command.command)
 			}}
 			>
 				<div class="line-clamp-1">{command.title}</div>

@@ -2065,9 +2065,9 @@
 							/>
 
 							<div
-								class="absolute bottom-1 text-xs text-gray-500 text-center line-clamp-1 right-0 left-0"
+								class="absolute bottom-0 text-xs text-gray-500 text-center line-clamp-1 right-0 left-0"
 							>
-								<!-- {$i18n.t('LLMs can make mistakes. Verify important information.')} -->
+								 {'GenAI\'s answers are not always correct. Please check for important information.'}
 							</div>
 						</div>
 					{:else}

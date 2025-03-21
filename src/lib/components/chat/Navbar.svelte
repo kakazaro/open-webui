@@ -26,6 +26,7 @@
 	import AdjustmentsHorizontal from '../icons/AdjustmentsHorizontal.svelte';
 
 	import PencilSquare from '../icons/PencilSquare.svelte';
+	import TabSelector from '$lib/components/chat/TabSelector.svelte';
 
 	const i18n = getContext('i18n');
 
@@ -36,6 +37,8 @@
 	export let chat;
 	export let selectedModels;
 	export let showModelSelector = true;
+
+	let selectedTab = 'Coding';
 
 	let showShareChatModal = false;
 	let showDownloadChatModal = false;
@@ -68,6 +71,8 @@
 					</div>
 				</button>
 			</div>
+
+			<TabSelector bind:selectedTab onChoose={(tab) => selectedTab = tab} initNewChat={initNewChat} />
 
 			<div
 				class="flex-1 overflow-hidden max-w-full py-0.5
