@@ -62,6 +62,20 @@ export const banners: Writable<Banner[]> = writable([]);
 
 export const settings: Writable<Settings> = writable({});
 
+export const chatTabSettings: Writable<ChatTabSettings> = writable({
+	selected: 'coding',
+	tabs: [
+		{
+			tab: 'coding',
+			title: 'Coding'
+		},
+		{
+			tab: 'requirement',
+			title: 'Requirement'
+		}
+	]
+});
+
 export const showSidebar = writable(false);
 export const showSettings = writable(false);
 export const showArchivedChats = writable(false);
@@ -154,6 +168,16 @@ type Settings = {
 	num_batch?: string;
 	num_keep?: string;
 	options?: ModelOptions;
+};
+
+type ChatTab = 'all' | 'coding' | 'requirement';
+
+type ChatTabSettings = {
+	selected: ChatTab;
+	tabs: {
+		tab: ChatTab;
+		title: string;
+	}[];
 };
 
 type ModelOptions = {

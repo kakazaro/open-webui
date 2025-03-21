@@ -38,8 +38,6 @@
 	export let selectedModels;
 	export let showModelSelector = true;
 
-	let selectedTab = 'Coding';
-
 	let showShareChatModal = false;
 	let showDownloadChatModal = false;
 </script>
@@ -72,7 +70,7 @@
 				</button>
 			</div>
 
-			<TabSelector bind:selectedTab onChoose={(tab) => selectedTab = tab} initNewChat={initNewChat} />
+			<TabSelector initNewChat={initNewChat} />
 
 			<div
 				class="flex-1 overflow-hidden max-w-full py-0.5

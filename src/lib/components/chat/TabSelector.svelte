@@ -2,11 +2,10 @@
 	import { DropdownMenu } from 'bits-ui';
 	import { flyAndScale } from '$lib/utils/transitions';
 	import ChevronDown from '$lib/components/icons/ChevronDown.svelte';
+	import { chatTabSettings } from '$lib/stores';
 
-	export let selectedTab = 'Coding';
-	export let onChoose: Function;
 	export let initNewChat: Function;
-	// let show = false;
+
 </script>
 
 <DropdownMenu.Root
@@ -26,7 +25,7 @@
 			aria-label="More"
 		>
 			<span>
-				{selectedTab}
+				{$chatTabSettings.tabs.find(t => t.tab === $chatTabSettings.selected)?.title ?? '[Unknown]'}
 			</span>
 			<ChevronDown className=" self-center ml-2 size-3" strokeWidth="2.5" />
 		</button>
@@ -40,23 +39,17 @@
 		align="start"
 		transition={flyAndScale}
 	>
+		{#each $chatTabSettings.tabs as tab}
 		<DropdownMenu.Item
-			class="flex gap-2 items-center px-3 py-2 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+			class="flex gap-2 items-center px-3 py-2 my-1 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl {tab.tab === $chatTabSettings.selected ? 'bg-gray-50 dark:bg-gray-800' : ''}"
 			on:click={() => {
-				onChoose(`Coding`);
+				chatTabSettings.update(last => ({...last, selected: tab.tab}))
+				localStorage.setItem('_tab', tab.tab);
 				initNewChat();
 		}}
 		>
-			<div class="line-clamp-1">Coding</div>
+			<div class="line-clamp-1">{tab.title}</div>
 		</DropdownMenu.Item>
-		<DropdownMenu.Item
-			class="flex gap-2 items-center px-3 py-2 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
-			on:click={() => {
-				onChoose(`Requirement`);
-				initNewChat();
-		}}
-		>
-			<div class="line-clamp-1">Requirement</div>
-		</DropdownMenu.Item>
+		{/each}
 	</DropdownMenu.Content>
 </DropdownMenu.Root>

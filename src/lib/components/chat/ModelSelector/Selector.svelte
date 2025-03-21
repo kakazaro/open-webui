@@ -57,6 +57,8 @@
 	let show = false;
 	let tags = [];
 
+	let showTags = false;
+
 	let selectedModel = '';
 	$: selectedModel = items.find((item) => item.value === value) ?? '';
 
@@ -325,7 +327,7 @@
 			{/if}
 
 			<div class="px-3 mb-2 max-h-64 overflow-y-auto scrollbar-hidden group relative">
-				{#if tags}
+				{#if (tags && showTags)}
 					<div class=" flex w-full sticky">
 						<div
 							class="flex gap-1 scrollbar-none overflow-x-auto w-fit text-center text-sm font-medium rounded-full bg-transparent px-1.5 pb-0.5"
@@ -374,7 +376,7 @@
 						}}
 					>
 						<div class="flex flex-col">
-							{#if $mobile && (item?.model?.info?.meta?.tags ?? []).length > 0}
+							{#if $mobile && (item?.model?.info?.meta?.tags ?? []).length > 0 && showTags}
 								<div class="flex gap-0.5 self-start h-full mb-1.5 -translate-x-1">
 									{#each item.model?.info?.meta.tags as tag}
 										<div
@@ -496,7 +498,7 @@
 									</Tooltip>
 								{/if}
 
-								{#if !$mobile && (item?.model?.info?.meta?.tags ?? []).length > 0}
+								{#if !$mobile && (item?.model?.info?.meta?.tags ?? []).length > 0 && showTags}
 									<div
 										class="flex gap-0.5 self-center items-center h-full translate-y-[0.5px] overflow-x-auto scrollbar-none"
 									>

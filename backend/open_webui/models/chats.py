@@ -120,6 +120,9 @@ class ChatTable:
                     "chat": form_data.chat,
                     "created_at": int(time.time()),
                     "updated_at": int(time.time()),
+                    "meta": {
+                        "tab": form_data.chat["tab"],
+                    },
                 }
             )
 

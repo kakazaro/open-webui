@@ -35,7 +35,8 @@
 		showOverview,
 		chatTitle,
 		showArtifacts,
-		tools
+		tools,
+		chatTabSettings
 	} from '$lib/stores';
 	import {
 		convertMessagesToHistory,
@@ -1831,6 +1832,7 @@
 				history: history,
 				messages: createMessagesList(history, history.currentId),
 				tags: [],
+				tab: $chatTabSettings.selected,
 				timestamp: Date.now()
 			});
 
