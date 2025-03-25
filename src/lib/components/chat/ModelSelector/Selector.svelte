@@ -19,7 +19,7 @@
 		mobile,
 		temporaryChatEnabled,
 		settings,
-		config
+		config, chatTabSettings
 	} from '$lib/stores';
 	import { toast } from 'svelte-sonner';
 	import { capitalizeFirstLetter, sanitizeResponseContent, splitStream } from '$lib/utils';
@@ -57,7 +57,7 @@
 	let show = false;
 	let tags = [];
 
-	let showTags = false;
+	let showTags = !$chatTabSettings.enable;
 
 	let selectedModel = '';
 	$: selectedModel = items.find((item) => item.value === value) ?? '';

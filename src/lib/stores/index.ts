@@ -64,6 +64,7 @@ export const settings: Writable<Settings> = writable({});
 
 export const chatTabSettings: Writable<ChatTabSettings> = writable({
 	selected: 'coding',
+	enable: false,
 	tabs: [
 		{
 			tab: 'coding',
@@ -174,6 +175,7 @@ type ChatTab = 'all' | 'coding' | 'requirement';
 
 type ChatTabSettings = {
 	selected: ChatTab;
+	enable: boolean;
 	tabs: {
 		tab: ChatTab;
 		title: string;

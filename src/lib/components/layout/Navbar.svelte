@@ -11,7 +11,7 @@
 		showControls,
 		showSidebar,
 		temporaryChatEnabled,
-		user
+		user, chatTabSettings
 	} from '$lib/stores';
 
 	import { slide } from 'svelte/transition';
@@ -71,7 +71,9 @@
 				</button>
 			</div>
 
-			<TabSelector initNewChat={initNewChat} />
+			{#if $chatTabSettings.enable}
+				<TabSelector initNewChat={initNewChat} />
+			{/if}
 
 			<div
 				class="flex-1 overflow-hidden max-w-full py-0.5

@@ -26,12 +26,12 @@
 	};
 
 	let filteredModels : Model[] = [];
-	const filteredModelsFunc = (selected: string) => {
-		filteredModels = selected === 'all' ? $models :
+	const filteredModelsFunc = (selected: string, enableTab: boolean) => {
+		filteredModels = selected === 'all' || !enableTab ? $models :
 			$models.filter((m: any) => m.info?.meta?.tags?.some(tag => tag.name.toLocaleLowerCase() === selected));
 	}
 
-	filteredModelsFunc($chatTabSettings.selected);
+	filteredModelsFunc($chatTabSettings.selected, $chatTabSettings.enable);
 
 	$: if (selectedModels.length > 0 && filteredModels.length > 0) {
 		selectedModels = selectedModels.map((model) =>
@@ -41,7 +41,7 @@
 
 	onMount(() => {
 		let unsubscribe = chatTabSettings.subscribe((setting) => {
-			filteredModelsFunc(setting.selected);
+			filteredModelsFunc(setting.selected, setting.enable);
 		});
 
 		return () => {
