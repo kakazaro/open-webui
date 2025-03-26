@@ -77,6 +77,11 @@ export const chatTabSettings: Writable<ChatTabSettings> = writable({
 	]
 });
 
+export const feedbackReportSettings: Writable<FeedbackReportSettings> = writable({
+	enable: true,
+	url: 'https://forms.office.com/r/926AKNkwqt'
+});
+
 export const showSidebar = writable(false);
 export const showSettings = writable(false);
 export const showArchivedChats = writable(false);
@@ -180,6 +185,11 @@ type ChatTabSettings = {
 		tab: ChatTab;
 		title: string;
 	}[];
+};
+
+type FeedbackReportSettings = {
+	enable: boolean;
+	url: string;
 };
 
 type ModelOptions = {

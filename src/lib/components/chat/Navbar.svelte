@@ -11,7 +11,7 @@
 		showControls,
 		showSidebar,
 		temporaryChatEnabled,
-		user, chatTabSettings
+		user, chatTabSettings, feedbackReportSettings
 	} from '$lib/stores';
 
 	import { slide } from 'svelte/transition';
@@ -24,6 +24,7 @@
 	import UserMenu from '$lib/components/layout/Sidebar/UserMenu.svelte';
 	import MenuLines from '../icons/MenuLines.svelte';
 	import AdjustmentsHorizontal from '../icons/AdjustmentsHorizontal.svelte';
+	import Bug from '../icons/Bug.svelte';
 
 	import PencilSquare from '../icons/PencilSquare.svelte';
 	import TabSelector from '$lib/components/chat/TabSelector.svelte';
@@ -86,6 +87,22 @@
 
 			<div class="self-start flex flex-none items-center text-gray-600 dark:text-gray-400">
 				<!-- <div class="md:hidden flex self-center w-[1px] h-5 mx-2 bg-gray-300 dark:bg-stone-700" /> -->
+				{#if $feedbackReportSettings.enable}
+					<Tooltip content={'Report bug'}>
+						<button
+							class=" flex cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
+							on:click={() => {
+								window.open($feedbackReportSettings.url, '_blank');
+							}}
+							aria-label="Report bug"
+						>
+							<div class=" m-auto self-center">
+								<Bug className=" size-5" strokeWidth="0.5" />
+							</div>
+						</button>
+					</Tooltip>
+				{/if}
+
 				{#if shareEnabled && chat && (chat.id || $temporaryChatEnabled)}
 					<Menu
 						{chat}
