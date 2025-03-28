@@ -14,7 +14,7 @@
 	import Pagination from '$lib/components/common/Pagination.svelte';
 	import { getAllChatsAdmin, getAllUserChats } from '$lib/apis/chats';
 
-	let limit = 5;
+	let limit = 20;
 	let page = 1;
 	let count = 0;
 	let chats = [];
