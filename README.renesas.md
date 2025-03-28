@@ -25,6 +25,9 @@ Use `docker-compose` to bring up the containers in detached mode:
 docker compose -f docker-compose.renesas.yaml up -d
 ```  
 
+## Log view
+Access Grafana at port [7385](http://localhost:7385)
+
 ### Stop Containers
 To bring down the running containers, use:
 
