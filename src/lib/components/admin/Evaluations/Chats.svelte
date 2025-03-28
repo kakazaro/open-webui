@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { toast } from 'svelte-sonner';
 	import fileSaver from 'file-saver';
-
 	const { saveAs } = fileSaver;
+
 	import dayjs from 'dayjs';
 	import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -37,6 +38,7 @@
 	}
 
 	const exportAllUserChats = async () => {
+		toast.message('Exporting... Please wait a bit.');
 		let blob = new Blob([JSON.stringify(await getAllUserChats(localStorage.token))], {
 			type: 'application/json'
 		});
