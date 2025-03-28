@@ -5,6 +5,7 @@
 	import Feedbacks from './Evaluations/Feedbacks.svelte';
 
 	import { getAllFeedbacks } from '$lib/apis/evaluations';
+	import Chats from '$lib/components/admin/Evaluations/Chats.svelte';
 
 	const i18n = getContext('i18n');
 
@@ -87,6 +88,32 @@
 				</div>
 				<div class=" self-center">{$i18n.t('Feedbacks')}</div>
 			</button>
+
+			<button
+				class="px-0.5 py-1 min-w-fit rounded-lg lg:flex-none flex text-right transition {selectedTab ===
+				'chats'
+					? ''
+					: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
+				on:click={() => {
+					selectedTab = 'chats';
+				}}
+			>
+				<div class=" self-center mr-2">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 16 16"
+						fill="currentColor"
+						class="w-4 h-4"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M8 2C4.262 2 1 4.57 1 8c0 1.86.98 3.486 2.455 4.566a3.472 3.472 0 0 1-.469 1.26.75.75 0 0 0 .713 1.14 6.961 6.961 0 0 0 3.06-1.06c.403.062.818.094 1.241.094 3.738 0 7-2.57 7-6s-3.262-6-7-6ZM5 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm7-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM8 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+				</div>
+				<div class=" self-center">Chats</div>
+			</button>
 		</div>
 
 		<div class="flex-1 mt-1 lg:mt-0 overflow-y-scroll">
@@ -94,6 +121,8 @@
 				<Leaderboard {feedbacks} />
 			{:else if selectedTab === 'feedbacks'}
 				<Feedbacks {feedbacks} />
+			{:else if selectedTab === 'chats'}
+				<Chats />
 			{/if}
 		</div>
 	</div>

@@ -104,6 +104,11 @@ class ChatTitleIdResponse(BaseModel):
     created_at: int
 
 
+class ChatAllResponse(BaseModel):
+    count: int
+    list: list[ChatTitleIdResponse]
+
+
 class ChatTable:
     def insert_new_chat(self, user_id: str, form_data: ChatForm) -> Optional[ChatModel]:
         with get_db() as db:
@@ -503,6 +508,35 @@ class ChatTable:
                 .order_by(Chat.updated_at.desc())
             )
             return [ChatModel.model_validate(chat) for chat in all_chats]
+
+    def get_chats_list(self, skip: int = 0, limit: int = 50) -> ChatAllResponse:
+        with get_db() as db:
+            count = db.query(func.count(Chat.id)).scalar()
+            all_chats = (
+                db.query(Chat)
+                .with_entities(
+                    Chat.id, Chat.title, Chat.updated_at, Chat.created_at
+                )
+                .order_by(Chat.updated_at.desc())
+                .limit(limit).offset(skip)
+                .all()
+            )
+            return ChatAllResponse.model_validate(
+                {
+                    'count': count,
+                    'list': [
+                        ChatTitleIdResponse.model_validate(
+                            {
+                                "id": chat[0],
+                                "title": chat[1],
+                                "updated_at": chat[2],
+                                "created_at": chat[3],
+                            }
+                        )
+                        for chat in all_chats
+                    ]
+                }
+            )
 
     def get_chats_by_user_id(self, user_id: str) -> list[ChatModel]:
         with get_db() as db:

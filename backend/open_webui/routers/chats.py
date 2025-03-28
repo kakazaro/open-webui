@@ -8,6 +8,7 @@ from open_webui.models.chats import (
     ChatResponse,
     Chats,
     ChatTitleIdResponse,
+    ChatAllResponse,
 )
 from open_webui.models.tags import TagModel, Tags
 from open_webui.models.folders import Folders
@@ -87,6 +88,28 @@ async def get_user_chat_list_by_user_id(
         user_id, include_archived=True, skip=skip, limit=limit
     )
 
+
+############################
+# GetAllUserChats
+############################
+
+
+@router.get("/list/all", response_model=Optional[ChatAllResponse])
+async def get_user_chats(
+        limit: Optional[int] = None,
+        page: Optional[int] = None
+):
+    if not ENABLE_ADMIN_CHAT_ACCESS:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
+        )
+    if page is not None and limit is not None:
+        skip = (page - 1) * limit
+
+        return Chats.get_chats_list(skip=skip, limit=limit)
+    else:
+        return Chats.get_chats_list()
 
 ############################
 # CreateNewChat
