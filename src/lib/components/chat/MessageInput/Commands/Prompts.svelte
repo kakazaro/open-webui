@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { prompts, user } from '$lib/stores';
+	import { prompts, settings, user } from '$lib/stores';
 	import {
 		findWordIndices,
 		getUserPosition,

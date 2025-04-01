@@ -36,6 +36,7 @@
 		chatTitle,
 		showArtifacts,
 		tools,
+		toolServers,
 		chatTabSettings
 	} from '$lib/stores';
 	import {
@@ -120,6 +121,7 @@
 	let imageGenerationEnabled = false;
 	let webSearchEnabled = false;
 	let codeInterpreterEnabled = false;
+
 	let chat = null;
 	let tags = [];
 
@@ -213,7 +215,14 @@
 		const _chatId = JSON.parse(JSON.stringify($chatId));
 		let _messageId = JSON.parse(JSON.stringify(message.id));
 
-		let messageChildrenIds = history.messages[_messageId].childrenIds;
+		let messageChildrenIds = [];
+		if (_messageId === null) {
+			messageChildrenIds = Object.keys(history.messages).filter(
+				(id) => history.messages[id].parentId === null
+			);
+		} else {
+			messageChildrenIds = history.messages[_messageId].childrenIds;
+		}
 
 		while (messageChildrenIds.length !== 0) {
 			_messageId = messageChildrenIds.at(-1);
@@ -287,18 +296,10 @@
 				} else if (type === 'chat:tags') {
 					chat = await getChatById(localStorage.token, $chatId);
 					allTags.set(await getAllTags(localStorage.token));
-				} else if (type === 'message') {
+				} else if (type === 'chat:message:delta' || type === 'message') {
 					message.content += data.content;
-				} else if (type === 'replace') {
+				} else if (type === 'chat:message' || type === 'replace') {
 					message.content = data.content;
-				} else if (type === 'action') {
-					if (data.action === 'continue') {
-						const continueButton = document.getElementById('continue-response-button');
-
-						if (continueButton) {
-							continueButton.click();
-						}
-					}
 				} else if (type === 'confirmation') {
 					eventCallback = cb;
 
@@ -385,7 +386,7 @@
 		if (event.data.type === 'input:prompt:submit') {
 			console.debug(event.data.text);
 
-			if (prompt !== '') {
+			if (event.data.text !== '') {
 				await tick();
 				submitPrompt(event.data.text);
 			}
@@ -888,6 +889,8 @@
 				await chats.set(await getChatList(localStorage.token, $currentChatPage));
 			}
 		}
+
+		taskId = null;
 	};
 
 	const chatActionHandler = async (chatId, actionId, modelId, responseMessageId, event = null) => {
@@ -1277,12 +1280,13 @@
 		prompt = '';
 
 		// Reset chat input textarea
-		const chatInputElement = document.getElementById('chat-input');
+		if (!($settings?.richTextInput ?? true)) {
+			const chatInputElement = document.getElementById('chat-input');
 
-		if (chatInputElement) {
-			await tick();
-			chatInputElement.style.height = '';
-			chatInputElement.style.height = Math.min(chatInputElement.scrollHeight, 320) + 'px';
+			if (chatInputElement) {
+				await tick();
+				chatInputElement.style.height = '';
+			}
 		}
 
 		const _files = JSON.parse(JSON.stringify(files));
@@ -1564,6 +1568,7 @@
 
 				files: (files?.length ?? 0) > 0 ? files : undefined,
 				tool_ids: selectedToolIds.length > 0 ? selectedToolIds : undefined,
+				tool_servers: $toolServers,
 
 				features: {
 					image_generation:
@@ -1622,7 +1627,7 @@
 					: {})
 			},
 			`${WEBUI_BASE_URL}/api`
-		).catch((error) => {
+		).catch(async (error) => {
 			toast.error(`${error}`);
 
 			responseMessage.error = {
@@ -1635,10 +1640,12 @@
 			return null;
 		});
 
-		console.log(res);
-
 		if (res) {
-			taskId = res.task_id;
+			if (res.error) {
+				await handleOpenAIError(res.error, responseMessage);
+			} else {
+				taskId = res.task_id;
+			}
 		}
 
 		await tick();
@@ -1655,9 +1662,11 @@
 
 		console.error(innerError);
 		if ('detail' in innerError) {
+			// FastAPI error
 			toast.error(innerError.detail);
 			errorMessage = innerError.detail;
 		} else if ('error' in innerError) {
+			// OpenAI error
 			if ('message' in innerError.error) {
 				toast.error(innerError.error.message);
 				errorMessage = innerError.error.message;
@@ -1666,6 +1675,7 @@
 				errorMessage = innerError.error;
 			}
 		} else if ('message' in innerError) {
+			// OpenAI error
 			toast.error(innerError.message);
 			errorMessage = innerError.message;
 		}
@@ -1684,9 +1694,10 @@
 		history.messages[responseMessage.id] = responseMessage;
 	};
 
-	const stopResponse = () => {
+	const stopResponse = async () => {
 		if (taskId) {
-			const res = stopTask(localStorage.token, taskId).catch((error) => {
+			const res = await stopTask(localStorage.token, taskId).catch((error) => {
+				toast.error(`${error}`);
 				return null;
 			});
 
@@ -2033,6 +2044,7 @@
 								bind:codeInterpreterEnabled
 								bind:webSearchEnabled
 								bind:atSelectedModel
+								toolServers={$toolServers}
 								transparentBackground={$settings?.backgroundImageUrl ?? false}
 								{stopResponse}
 								{createMessagePair}
@@ -2086,6 +2098,7 @@
 								bind:webSearchEnabled
 								bind:atSelectedModel
 								transparentBackground={$settings?.backgroundImageUrl ?? false}
+								toolServers={$toolServers}
 								{stopResponse}
 								{createMessagePair}
 								on:upload={async (e) => {
