@@ -165,9 +165,11 @@
 							{feedback.data?.reason}
 						{/if}
 					</div>
-					<div>
-						{$i18n.t('Rating')}: {feedback.data?.details?.rating}/10
-					</div>
+					{#if typeof feedback.data?.details?.rating === 'number'}
+						<div>
+							{$i18n.t('Rating')}: {feedback.data?.details?.rating}/10
+						</div>
+					{/if}
 				</div>
 			</div>
 		{/if}

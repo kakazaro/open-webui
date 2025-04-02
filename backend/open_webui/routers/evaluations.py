@@ -56,19 +56,8 @@ async def update_config(
     }
 
 
-class FeedbackUserReponse(BaseModel):
-    id: str
-    name: str
-    email: str
-    role: str = "pending"
-
-    last_active_at: int  # timestamp in epoch
-    updated_at: int  # timestamp in epoch
-    created_at: int  # timestamp in epoch
-
-
 class FeedbackUserResponse(FeedbackResponse):
-    user: Optional[FeedbackUserReponse] = None
+    user: Optional[UserModel] = None
 
 
 @router.get("/feedbacks/all", response_model=list[FeedbackUserResponse])
