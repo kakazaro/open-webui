@@ -5,7 +5,7 @@ from typing import Optional
 
 from open_webui.internal.db import Base, get_db
 from open_webui.models.chats import Chats
-
+from open_webui.models.users import User, UserModel
 from open_webui.env import SRC_LOG_LEVELS
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import BigInteger, Column, Text, JSON, Boolean
@@ -30,6 +30,7 @@ class Feedback(Base):
     snapshot = Column(JSON, nullable=True)
     created_at = Column(BigInteger)
     updated_at = Column(BigInteger)
+    chat_id = Column(Text)
 
 
 class FeedbackModel(BaseModel):
@@ -42,7 +43,7 @@ class FeedbackModel(BaseModel):
     snapshot: Optional[dict] = None
     created_at: int
     updated_at: int
-
+    chat_id: str
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -58,6 +59,7 @@ class FeedbackResponse(BaseModel):
     type: str
     data: Optional[dict] = None
     meta: Optional[dict] = None
+    snapshot: Optional[dict] = None
     created_at: int
     updated_at: int
 
@@ -91,6 +93,21 @@ class FeedbackForm(BaseModel):
     snapshot: Optional[SnapshotData] = None
     model_config = ConfigDict(extra="allow")
 
+class FeedbackUserResponse(BaseModel):
+    id: str
+    user_id: str
+    version: int
+    type: str
+    data: Optional[dict] = None
+    meta: Optional[dict] = None
+    snapshot: Optional[dict] = None
+    created_at: int
+    updated_at: int
+    chat_id: str
+    user: Optional[UserModel] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
 
 class FeedbackTable:
     def insert_new_feedback(
@@ -98,10 +115,12 @@ class FeedbackTable:
     ) -> Optional[FeedbackModel]:
         with get_db() as db:
             id = str(uuid.uuid4())
+            chat_id = form_data.meta.get('chat_id') if form_data.meta else None
             feedback = FeedbackModel(
                 **{
                     "id": id,
                     "user_id": user_id,
+                    "chat_id": chat_id,
                     "version": 0,
                     **form_data.model_dump(),
                     "created_at": int(time.time()),
@@ -150,6 +169,23 @@ class FeedbackTable:
                 for feedback in db.query(Feedback)
                 .order_by(Feedback.updated_at.desc())
                 .all()
+            ]
+        
+    def get_all_feedbacks_with_user(self) -> list[FeedbackUserResponse]:
+        with get_db() as db:
+            results = (
+                db.query(Feedback, User)
+                .outerjoin(User, Feedback.user_id == User.id)
+                .order_by(Feedback.updated_at.desc())
+                .all()
+            )
+            
+            return [
+                FeedbackUserResponse(
+                    **feedback.__dict__,
+                    user=UserModel.model_validate(user) if user else None
+                )
+                for feedback, user in results
             ]
 
     def get_feedbacks_by_type(self, type: str) -> list[FeedbackModel]:
@@ -220,6 +256,16 @@ class FeedbackTable:
             db.delete(feedback)
             db.commit()
             return True
+        
+    def get_feedbacks_by_chat_id(self, chat_id: str) -> list[FeedbackModel]:
+        with get_db() as db:
+            return [
+                FeedbackModel.model_validate(feedback)
+                for feedback in db.query(Feedback)
+                .filter_by(chat_id=chat_id)
+                .order_by(Feedback.updated_at.desc())
+                .all()
+            ]
 
     def delete_feedback_by_id_and_user_id(self, id: str, user_id: str) -> bool:
         with get_db() as db:
