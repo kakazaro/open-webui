@@ -5,7 +5,7 @@
 
 	import dayjs from 'dayjs';
 
-	import { settings, chatId, WEBUI_NAME, models, config, user as _user } from '$lib/stores';
+	import { settings, chatId, WEBUI_NAME, models, config } from '$lib/stores';
 	import { convertMessagesToHistory, createMessagesList } from '$lib/utils';
 
 	import { getChatByShareId, cloneSharedChatById } from '$lib/apis/chats';
@@ -60,7 +60,7 @@
 				loaded = true;
 				const urlParams = new URLSearchParams(window.location.search);
         		showFeedback = urlParams.get('showFeedback') === 'true';
-				if(showFeedback && $_user?.role === 'admin') {
+				if (showFeedback) {
 					await getChatFeedbacks();
 				}
 			} else {

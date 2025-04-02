@@ -470,6 +470,7 @@
 							{triggerScroll}
 							{readOnly}
 							feedback={feedbacks.find(f => f.meta.message_id === message.id)}
+							feedbacks={feedbacks}
 						/>
 					{/each}
 				</div>

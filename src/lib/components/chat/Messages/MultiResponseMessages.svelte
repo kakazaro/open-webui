@@ -17,6 +17,8 @@
 	import Name from './Name.svelte';
 	import Skeleton from './Skeleton.svelte';
 	import localizedFormat from 'dayjs/plugin/localizedFormat';
+	import Feedback from '$lib/components/admin/Evaluations/Feedbacks.svelte';
+	import Message from '$lib/components/chat/Messages/Message.svelte';
 	const i18n = getContext('i18n');
 	dayjs.extend(localizedFormat);
 
@@ -43,6 +45,8 @@
 	export let addMessages: Function;
 
 	export let triggerScroll: Function;
+
+	export let feedbacks: Feedback[] = [];
 
 	const dispatch = createEventDispatcher();
 
@@ -228,7 +232,7 @@
 								}`
 							: `border-gray-100 dark:border-gray-850 border-dashed ${
 									$mobile ? 'min-w-full' : 'min-w-80'
-								}`} transition-all p-5 rounded-2xl"
+								}`} transition-all p-1 rounded-2xl"
 						on:click={async () => {
 							if (messageId != _messageId) {
 								let currentMessageId = _messageId;
@@ -272,6 +276,7 @@
 									}}
 									{addMessages}
 									{readOnly}
+									feedback={feedbacks.find(f => f.meta.message_id === _messageId)}
 								/>
 							{/if}
 						{/key}

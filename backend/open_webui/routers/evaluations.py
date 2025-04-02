@@ -157,7 +157,7 @@ async def delete_feedback_by_id(id: str, user=Depends(get_verified_user)):
     return success
 
 @router.get("/feedbacks/chat/{id}", response_model=list[FeedbackUserResponse])
-async def get_feedbacks_by_chat_id(id: str, user=Depends(get_admin_user)):
+async def get_feedbacks_by_chat_id(id: str, user=Depends(get_verified_user)):
     feedbacks = Feedbacks.get_feedbacks_by_chat_id(chat_id=id)
     return [
         FeedbackUserResponse(
