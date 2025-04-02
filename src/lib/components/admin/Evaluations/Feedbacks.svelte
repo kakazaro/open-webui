@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { models } from '$lib/stores';
 	import { toast } from 'svelte-sonner';
 	import fileSaver from 'file-saver';
 	const { saveAs } = fileSaver;
@@ -23,14 +24,23 @@
 	export let feedbacks: Feedback[] = [];
 
 	let page = 1;
-	$: paginatedFeedbacks = feedbacks.slice((page - 1) * 10, page * 10);
+	$: paginatedFeedbacks = feedbacks.slice((page - 1) * 10, page * 10).map(feedback => ({
+		...feedback,
+		data: {
+			...(feedback.data || {}),
+			model: $models.find(model => model.id === feedback.data?.model_id)?.name ?? feedback.data?.model_id,
+			sibling_models: feedback.data?.sibling_model_ids?.map(id => $models.find(model => model.id === id)?.name ?? id)
+		}
+	}));
 
 	type Feedback = {
 		id: string;
 		data: {
 			rating: number;
 			model_id: string;
+			model: string;
 			sibling_model_ids: string[] | null;
+			sibling_models: string[] | null;
 			reason: string;
 			comment: string;
 			tags: string[];
@@ -198,21 +208,21 @@
 						<td class=" py-1 pl-3 flex flex-col">
 							<div class="flex flex-col items-start gap-0.5 h-full">
 								<div class="flex flex-col h-full">
-									{#if feedback.data?.sibling_model_ids}
+									{#if feedback.data?.sibling_models}
 										<div class="font-semibold text-gray-600 dark:text-gray-400 flex-1">
-											{feedback.data?.model_id}
+											{feedback.data?.model}
 										</div>
 
-										<Tooltip content={feedback.data.sibling_model_ids.join(', ')}>
+										<Tooltip content={feedback.data.sibling_models.join(', ')}>
 											<div class=" text-[0.65rem] text-gray-600 dark:text-gray-400 line-clamp-1">
-												{#if feedback.data.sibling_model_ids.length > 2}
+												{#if feedback.data.sibling_models.length > 2}
 													<!-- {$i18n.t('and {{COUNT}} more')} -->
-													{feedback.data.sibling_model_ids.slice(0, 2).join(', ')}, {$i18n.t(
+													{feedback.data.sibling_models.slice(0, 2).join(', ')}, {$i18n.t(
 														'and {{COUNT}} more',
-														{ COUNT: feedback.data.sibling_model_ids.length - 2 }
+													{ COUNT: feedback.data.sibling_models.length - 2 }
 													)}
 												{:else}
-													{feedback.data.sibling_model_ids.join(', ')}
+													{feedback.data.sibling_models.join(', ')}
 												{/if}
 											</div>
 										</Tooltip>
@@ -220,7 +230,7 @@
 										<div
 											class=" text-sm font-medium text-gray-600 dark:text-gray-400 flex-1 py-1.5"
 										>
-											{feedback.data?.model_id}
+											{feedback.data?.model}
 										</div>
 									{/if}
 								</div>
