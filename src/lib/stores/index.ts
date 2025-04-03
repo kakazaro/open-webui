@@ -81,7 +81,7 @@ export const chatTabSettings: Writable<ChatTabSettings> = writable({
 
 export const feedbackReportSettings: Writable<FeedbackReportSettings> = writable({
 	enable: true,
-	url: 'https://forms.office.com/r/926AKNkwqt'
+	url: 'http://10.210.106.4:7357/ticket/create'
 });
 
 export const showSidebar = writable(false);
