@@ -898,7 +898,13 @@ async def process_chat_payload(request, form_data, user, metadata, model):
     if len(sources) > 0:
         context_string = ""
         for source_idx, source in enumerate(sources):
-            if "document" in source:
+            if "source" in source and "file" in source["source"] and "data" in source["source"]["file"] and "content" in \
+                    source["source"]["file"]["data"] and source["source"]["file"]["data"]["content"] and isinstance(
+                source["source"]["file"]["data"]["content"], str):
+                context_string += (
+                    f'<source id="{source_idx + 1}">{source["source"]["file"]["data"]["content"]}</source>\n'
+                )
+            elif "document" in source:
                 for doc_idx, doc_context in enumerate(source["document"]):
                     context_string += (
                         f'<source id="{source_idx + 1}">{doc_context}</source>\n'
