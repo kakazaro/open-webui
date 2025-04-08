@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { prompts, settings, user } from '$lib/stores';
 	import {
-		findWordIndices,
+		extractCurlyBraceWords,
 		getUserPosition,
 		getFormattedDate,
 		getFormattedTime,
@@ -87,7 +87,7 @@
 
 		if (text.includes('{{USER_NAME}}')) {
 			console.log($user);
-			const name = $user.name || 'User';
+			const name = $user?.name || 'User';
 			text = text.replaceAll('{{USER_NAME}}', name);
 		}
 
@@ -128,9 +128,7 @@
 
 		await tick();
 		if (chatInputContainerElement) {
-			chatInputContainerElement.style.height = '';
-			chatInputContainerElement.style.height =
-				Math.min(chatInputContainerElement.scrollHeight, 200) + 'px';
+			chatInputContainerElement.scrollTop = chatInputContainerElement.scrollHeight;
 		}
 
 		await tick();
