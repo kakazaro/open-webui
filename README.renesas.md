@@ -10,7 +10,7 @@ docker build -f Dockerfile.renesas -t kakazaro/open-webui:latest .
 ```  
 
 ### Push the Docker Image
-After building the image, push it to the repository:
+After building the image, push it to the repository (login as kakazaro account on docker hub server):
 
 ```bash
 docker push kakazaro/open-webui:latest
