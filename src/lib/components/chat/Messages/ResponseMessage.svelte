@@ -844,7 +844,8 @@
 										<Error content={message?.error?.content ?? message.content} />
 									{/if}
 
-									{#if (message?.sources || message?.citations) && (model?.info?.meta?.capabilities?.citations ?? true)}
+									<!--	TODO Renesas edit: Hide all Citations -->
+									{#if (message?.sources || message?.citations) && (model?.info?.meta?.capabilities?.citations ?? true) && false}
 										<Citations id={message?.id} sources={message?.sources ?? message?.citations} />
 									{/if}
 
