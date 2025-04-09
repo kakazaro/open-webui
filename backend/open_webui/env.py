@@ -460,3 +460,9 @@ OTEL_TRACES_SAMPLER = os.environ.get(
 
 PIP_OPTIONS = os.getenv("PIP_OPTIONS", "").split()
 PIP_PACKAGE_INDEX_OPTIONS = os.getenv("PIP_PACKAGE_INDEX_OPTIONS", "").split()
+
+####################################
+# RENESAS CONFIG
+####################################
+
+WEBUI_LOG_URL = os.environ.get("WEBUI_LOG_URL", "")

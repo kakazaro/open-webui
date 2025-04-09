@@ -3,6 +3,7 @@ import logging
 import sys
 from typing import TYPE_CHECKING
 
+import requests
 from loguru import logger
 
 from open_webui.env import (
@@ -10,8 +11,8 @@ from open_webui.env import (
     AUDIT_LOG_LEVEL,
     AUDIT_LOGS_FILE_PATH,
     GLOBAL_LOG_LEVEL,
+    WEBUI_LOG_URL,
 )
-
 
 if TYPE_CHECKING:
     from loguru import Record
@@ -57,6 +58,16 @@ class InterceptHandler(logging.Handler):
         while frame and frame.f_code.co_filename == logging.__file__:
             frame = frame.f_back
             depth += 1
+
+        if WEBUI_LOG_URL:
+            try:
+                r = requests.post(f"{WEBUI_LOG_URL}/logger",
+                              headers={"Content-Type": "application/json"},
+                              json={"level": str(level), "message": record.getMessage()}
+                              )
+                r.raise_for_status()
+            except Exception as e:
+                print(f"Failed to post renesas log: {e}")
 
         logger.opt(depth=depth, exception=record.exc_info).log(
             level, record.getMessage()
@@ -136,5 +147,8 @@ def start_logger():
         uvicorn_logger = logging.getLogger(uvicorn_logger_name)
         uvicorn_logger.setLevel(GLOBAL_LOG_LEVEL)
         uvicorn_logger.handlers = [InterceptHandler()]
+
+    if WEBUI_LOG_URL:
+        print(f'Renesas log at {WEBUI_LOG_URL}')
 
     logger.info(f"GLOBAL_LOG_LEVEL: {GLOBAL_LOG_LEVEL}")
