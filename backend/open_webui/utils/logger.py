@@ -4,6 +4,8 @@ import sys
 from typing import TYPE_CHECKING
 
 import requests
+import queue
+import threading
 from loguru import logger
 
 from open_webui.env import (
@@ -37,6 +39,29 @@ def stdout_format(record: "Record") -> str:
     )
 
 
+log_queue = queue.Queue()
+
+
+def log_worker():
+    while True:
+        try:
+            log_data = log_queue.get()
+            if log_data is None:
+                break  # Optional exit logic
+            r = requests.post(
+                f"{WEBUI_LOG_URL}/logger",
+                headers={"Content-Type": "application/json"},
+                json=log_data
+            )
+            r.raise_for_status()
+        except:
+            pass
+        # except Exception as e:
+        # print(f"Failed to post renesas log: {e}")
+        finally:
+            log_queue.task_done()
+
+
 class InterceptHandler(logging.Handler):
     """
     Intercepts log records from Python's standard logging module
@@ -60,14 +85,10 @@ class InterceptHandler(logging.Handler):
             depth += 1
 
         if WEBUI_LOG_URL:
-            try:
-                r = requests.post(f"{WEBUI_LOG_URL}/logger",
-                              headers={"Content-Type": "application/json"},
-                              json={"level": str(level), "message": record.getMessage()}
-                              )
-                r.raise_for_status()
-            except Exception as e:
-                print(f"Failed to post renesas log: {e}")
+            log_queue.put({
+                "level": str(level),
+                "message": record.getMessage()
+            })
 
         logger.opt(depth=depth, exception=record.exc_info).log(
             level, record.getMessage()
@@ -149,6 +170,8 @@ def start_logger():
         uvicorn_logger.handlers = [InterceptHandler()]
 
     if WEBUI_LOG_URL:
+        # Start worker thread
+        threading.Thread(target=log_worker, daemon=True).start()
         print(f'Renesas log at {WEBUI_LOG_URL}')
 
     logger.info(f"GLOBAL_LOG_LEVEL: {GLOBAL_LOG_LEVEL}")
