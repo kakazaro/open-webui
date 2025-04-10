@@ -16,6 +16,22 @@ To bring down the running containers, use:
 docker compose -f docker-compose.renesas.yaml down
 ```  
 
+# Product Backup/Restore
+
+### To backup data
+
+```bash
+docker run --rm -v web-openui_open-webui:/volume -v $(pwd):/backup busybox sh -c "cd /volume && tar cvf /backup/open-webui-backup.tar ."
+```  
+Backup file created at "open-webui-backup.tar"
+
+### To restore data
+
+Go to folder where "open-webui-backup.tar" is
+```bash
+docker run --rm -v web-openui_open-webui:/volume -v $(pwd):/backup busybox sh -c "cd /volume && tar xvf /backup/open-webui-backup.tar"
+```  
+
 # Local Development
 
 For local development, follow these steps:

@@ -1,0 +1,6 @@
+deploy:
+  stage: deploy
+  tags:
+    - ui-nodejs
+  script:
+    - bash ./run.renesas.sh
