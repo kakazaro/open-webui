@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.renesas
-    image: gen-open-webui:latest # pull from docker hub
+    image: gen-open-webui:latest
     container_name: open-webui
     volumes:
       - open-webui:/app/backend/data
