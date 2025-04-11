@@ -634,11 +634,11 @@ async def generate_chat_completion(
 
     idx = 0
 
-    print('before form_data')
-    print(form_data["messages"])
+    # print('before form_data')
+    # print(form_data["messages"])
     replace_command_in_payload(form_data)
-    print('after form_data')
-    print(form_data["messages"])
+    # print('after form_data')
+    # print(form_data["messages"])
     payload = {**form_data}
     metadata = payload.pop("metadata", None)
 
