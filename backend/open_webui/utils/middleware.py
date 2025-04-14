@@ -882,14 +882,18 @@ async def process_chat_payload(request, form_data, user, metadata, model):
     if len(sources) > 0:
         context_string = ""
         citated_file_idx = {}
-        for _, source in enumerate(sources, 1):
-            # if "source" in source and "file" in source["source"] and "data" in source["source"]["file"] and "content" in \
-            #     source["source"]["file"]["data"] and source["source"]["file"]["data"]["content"] and isinstance(
-            #     source["source"]["file"]["data"]["content"], str):
-            #     context_string += (
-            #         f'<source id="{source_idx + 1}">{source["source"]["file"]["data"]["content"]}</source>\n'
-            #     )
-            if "document" in source:
+        for source_idx, source in enumerate(sources, 1):
+            if "source" in source and "file" in source["source"] and "data" in source["source"]["file"] and "content" in \
+                source["source"]["file"]["data"] and source["source"]["file"]["data"]["content"] and isinstance(
+                source["source"]["file"]["data"]["content"], str):
+                # Todo: renesas: Improve file content input on query
+                file_id = source["source"]["file"]['id']
+                if file_id not in citated_file_idx:
+                    citated_file_idx[file_id] = len(citated_file_idx) + 1
+                context_string += (
+                    f'<source id="{citated_file_idx[file_id]}">{source["source"]["file"]["data"]["content"]}</source>\n'
+                )
+            elif "document" in source:
                 for doc_context, doc_meta in zip(
                     source["document"], source["metadata"]
                 ):

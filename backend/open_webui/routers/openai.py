@@ -794,6 +794,9 @@ async def generate_chat_completion(
         if isinstance(response, dict):
             if "error" in response:
                 detail = f"{response['error']['message'] if 'message' in response['error'] else response['error']}"
+            elif "message" in response:
+                # Todo: renesas: improve error message
+                detail = f"{response['message']}"
         elif isinstance(response, str):
             detail = response
 
