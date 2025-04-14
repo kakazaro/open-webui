@@ -26,8 +26,7 @@
 		isLastActiveTab,
 		isApp,
 		appInfo,
-		toolServers,
-		chatTabSettings
+		toolServers
 	} from '$lib/stores';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -524,11 +523,6 @@
 				? backendConfig.default_locale
 				: bestMatchingLanguage(languages, browserLanguages, 'en-US');
 			changeLanguage(lang);
-		}
-
-		// Initialize Renesas part
-		if ($chatTabSettings.tabs.some(t => t.tab === localStorage._tab)) {
-			chatTabSettings.update(last => ({ ...last, selected: localStorage._tab }));
 		}
 
 		if (backendConfig) {

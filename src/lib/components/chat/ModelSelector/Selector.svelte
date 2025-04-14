@@ -19,7 +19,7 @@
 		mobile,
 		temporaryChatEnabled,
 		settings,
-		config, chatTabSettings
+		config
 	} from '$lib/stores';
 	import { toast } from 'svelte-sonner';
 	import { capitalizeFirstLetter, sanitizeResponseContent, splitStream } from '$lib/utils';
@@ -56,8 +56,6 @@
 
 	let show = false;
 	let tags = [];
-
-	let showTags = !$chatTabSettings.enable;
 
 	let selectedModel = '';
 	$: selectedModel = items.find((item) => item.value === value) ?? '';
@@ -381,7 +379,7 @@
 			{/if}
 
 			<div class="px-3 max-h-64 overflow-y-auto scrollbar-hidden group relative">
-				{#if tags && showTags && items.filter((item) => !(item.model?.info?.meta?.hidden ?? false)).length > 0}
+				{#if tags && items.filter((item) => !(item.model?.info?.meta?.hidden ?? false)).length > 0}
 					<div
 						class=" flex w-full sticky top-0 z-10 bg-white dark:bg-gray-850 overflow-x-auto scrollbar-none"
 						on:wheel={(e) => {
@@ -483,7 +481,7 @@
 						}}
 					>
 						<div class="flex flex-col">
-							{#if $mobile && (item?.model?.tags ?? []).length > 0 && showTags}
+							{#if $mobile && (item?.model?.tags ?? []).length > 0}
 								<div class="flex gap-0.5 self-start h-full mb-1.5 -translate-x-1">
 									{#each item.model?.tags.sort((a, b) => a.name.localeCompare(b.name)) as tag}
 										<div
@@ -611,7 +609,7 @@
 									</Tooltip>
 								{/if}
 
-								{#if !$mobile && (item?.model?.tags ?? []).length > 0 && showTags}
+								{#if !$mobile && (item?.model?.tags ?? []).length > 0}
 									<div
 										class="flex gap-0.5 self-center items-center h-full translate-y-[0.5px] overflow-x-auto scrollbar-none"
 									>

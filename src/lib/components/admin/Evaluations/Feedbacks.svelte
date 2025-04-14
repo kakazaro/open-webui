@@ -23,8 +23,9 @@
 
 	export let feedbacks: Feedback[] = [];
 
+	let perPage = 50;
 	let page = 1;
-	$: paginatedFeedbacks = feedbacks.slice((page - 1) * 10, page * 10).map(feedback => ({
+	$: paginatedFeedbacks = feedbacks.slice((page - 1) * perPage, page * perPage).map(feedback => ({
 		...feedback,
 		data: {
 			...(feedback.data || {}),
@@ -312,6 +313,6 @@
 	</div>
 {/if}
 
-{#if feedbacks.length > 10}
-	<Pagination bind:page count={feedbacks.length} perPage={10} />
+{#if feedbacks.length > perPage}
+	<Pagination bind:page count={feedbacks.length} perPage={perPage} />
 {/if}

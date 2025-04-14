@@ -64,21 +64,6 @@ export const banners: Writable<Banner[]> = writable([]);
 
 export const settings: Writable<Settings> = writable({});
 
-export const chatTabSettings: Writable<ChatTabSettings> = writable({
-	selected: 'coding',
-	enable: false,
-	tabs: [
-		{
-			tab: 'coding',
-			title: 'Coding'
-		},
-		{
-			tab: 'requirement',
-			title: 'Requirement'
-		}
-	]
-});
-
 export const feedbackReportSettings: Writable<FeedbackReportSettings> = writable({
 	url: 'http://10.210.106.4:7357/ticket/create',
 	manualUrl: 'https://renesasgroup.sharepoint.com/:p:/s/ABU-SWBD/SWBD/EfjgQ6fzTlNHpbQcVSE1S0YBtOX6BK3NqWF1sp3OarIWww?e=Q2D9ak',
@@ -176,17 +161,6 @@ type Settings = {
 	num_batch?: string;
 	num_keep?: string;
 	options?: ModelOptions;
-};
-
-type ChatTab = 'all' | 'coding' | 'requirement';
-
-type ChatTabSettings = {
-	selected: ChatTab;
-	enable: boolean;
-	tabs: {
-		tab: ChatTab;
-		title: string;
-	}[];
 };
 
 type FeedbackReportSettings = {

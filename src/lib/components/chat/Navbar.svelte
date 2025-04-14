@@ -4,6 +4,7 @@
 
 	import {
 		WEBUI_NAME,
+		feedbackReportSettings,
 		banners,
 		chatId,
 		config,
@@ -13,7 +14,7 @@
 		showControls,
 		showSidebar,
 		temporaryChatEnabled,
-		user, chatTabSettings, feedbackReportSettings
+		user
 	} from '$lib/stores';
 
 	import { slide } from 'svelte/transition';
@@ -31,7 +32,6 @@
 
 	import PencilSquare from '../icons/PencilSquare.svelte';
 	import Banner from '../common/Banner.svelte';
-	import TabSelector from '$lib/components/chat/TabSelector.svelte';
 
 	const i18n = getContext('i18n');
 
@@ -76,10 +76,6 @@
 						</div>
 					</button>
 				</div>
-
-				{#if $chatTabSettings.enable}
-					<TabSelector initNewChat={initNewChat} />
-				{/if}
 
 				<div
 					class="flex-1 overflow-hidden max-w-full py-0.5

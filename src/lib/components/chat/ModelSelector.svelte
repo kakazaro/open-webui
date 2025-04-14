@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { models, showSettings, settings, user, mobile, config, chatTabSettings, type Model } from '$lib/stores';
+	import { models, showSettings, settings, user, mobile, config } from '$lib/stores';
 	import { onMount, tick, getContext } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import Selector from './ModelSelector/Selector.svelte';
@@ -25,29 +25,11 @@
 		toast.success($i18n.t('Default model updated'));
 	};
 
-	let filteredModels : Model[] = [];
-	const filteredModelsFunc = (selected: string, enableTab: boolean) => {
-		filteredModels = selected === 'all' || !enableTab ? $models :
-			$models.filter((m: any) => m.info?.meta?.tags?.some(tag => tag.name.toLocaleLowerCase() === selected));
-	}
-
-	filteredModelsFunc($chatTabSettings.selected, $chatTabSettings.enable);
-
-	$: if (selectedModels.length > 0 && filteredModels.length > 0) {
+	$: if (selectedModels.length > 0 && $models.length > 0) {
 		selectedModels = selectedModels.map((model) =>
-			filteredModels.map((m) => m.id).includes(model) ? model : ''
+			$models.map((m) => m.id).includes(model) ? model : ''
 		);
 	}
-
-	onMount(() => {
-		let unsubscribe = chatTabSettings.subscribe((setting) => {
-			filteredModelsFunc(setting.selected, setting.enable);
-		});
-
-		return () => {
-			unsubscribe();
-		}
-	});
 </script>
 
 <div class="flex flex-col w-full items-start">
@@ -58,7 +40,7 @@
 					<Selector
 						id={`${selectedModelIdx}`}
 						placeholder={$i18n.t('Select a model')}
-						items={filteredModels.map((model) => ({
+						items={$models.map((model) => ({
 							value: model.id,
 							label: model.name,
 							model: model

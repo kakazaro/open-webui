@@ -38,7 +38,7 @@ router = APIRouter()
 @router.get("/", response_model=list[ChatTitleIdResponse])
 @router.get("/list", response_model=list[ChatTitleIdResponse])
 async def get_session_user_chat_list(
-    user=Depends(get_verified_user), page: Optional[int] = None, tab=Optional[str]
+    user=Depends(get_verified_user), page: Optional[int] = None
 ):
     if page is not None:
         limit = 60

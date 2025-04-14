@@ -125,9 +125,6 @@ class ChatTable:
                     "chat": form_data.chat,
                     "created_at": int(time.time()),
                     "updated_at": int(time.time()),
-                    "meta": {
-                        "tab": form_data.chat.get("tab", "coding"),
-                    },
                 }
             )
 
@@ -138,7 +135,7 @@ class ChatTable:
             return ChatModel.model_validate(result) if result else None
 
     def import_chat(
-            self, user_id: str, form_data: ChatImportForm
+        self, user_id: str, form_data: ChatImportForm
     ) -> Optional[ChatModel]:
         with get_db() as db:
             id = str(uuid.uuid4())
@@ -191,7 +188,7 @@ class ChatTable:
         return self.update_chat_by_id(id, chat)
 
     def update_chat_tags_by_id(
-            self, id: str, tags: list[str], user
+        self, id: str, tags: list[str], user
     ) -> Optional[ChatModel]:
         chat = self.get_chat_by_id(id)
         if chat is None:
@@ -225,7 +222,7 @@ class ChatTable:
         return chat.chat.get("history", {}).get("messages", {}) or {}
 
     def get_message_by_id_and_message_id(
-            self, id: str, message_id: str
+        self, id: str, message_id: str
     ) -> Optional[dict]:
         chat = self.get_chat_by_id(id)
         if chat is None:
@@ -234,7 +231,7 @@ class ChatTable:
         return chat.chat.get("history", {}).get("messages", {}).get(message_id, {})
 
     def upsert_message_to_chat_by_id_and_message_id(
-            self, id: str, message_id: str, message: dict
+        self, id: str, message_id: str, message: dict
     ) -> Optional[ChatModel]:
         chat = self.get_chat_by_id(id)
         if chat is None:
@@ -257,7 +254,7 @@ class ChatTable:
         return self.update_chat_by_id(id, chat)
 
     def add_message_status_to_chat_by_id_and_message_id(
-            self, id: str, message_id: str, status: dict
+        self, id: str, message_id: str, status: dict
     ) -> Optional[ChatModel]:
         chat = self.get_chat_by_id(id)
         if chat is None:
@@ -339,7 +336,7 @@ class ChatTable:
             return False
 
     def update_chat_share_id_by_id(
-            self, id: str, share_id: Optional[str]
+        self, id: str, share_id: Optional[str]
     ) -> Optional[ChatModel]:
         try:
             with get_db() as db:
@@ -385,7 +382,7 @@ class ChatTable:
             return False
 
     def get_archived_chat_list_by_user_id(
-            self, user_id: str, skip: int = 0, limit: int = 50
+        self, user_id: str, skip: int = 0, limit: int = 50
     ) -> list[ChatModel]:
         with get_db() as db:
             all_chats = (
@@ -398,11 +395,11 @@ class ChatTable:
             return [ChatModel.model_validate(chat) for chat in all_chats]
 
     def get_chat_list_by_user_id(
-            self,
-            user_id: str,
-            include_archived: bool = False,
-            skip: int = 0,
-            limit: int = 50,
+        self,
+        user_id: str,
+        include_archived: bool = False,
+        skip: int = 0,
+        limit: int = 50,
     ) -> list[ChatModel]:
         with get_db() as db:
             query = db.query(Chat).filter_by(user_id=user_id)
@@ -420,11 +417,11 @@ class ChatTable:
             return [ChatModel.model_validate(chat) for chat in all_chats]
 
     def get_chat_title_id_list_by_user_id(
-            self,
-            user_id: str,
-            include_archived: bool = False,
-            skip: Optional[int] = None,
-            limit: Optional[int] = None,
+        self,
+        user_id: str,
+        include_archived: bool = False,
+        skip: Optional[int] = None,
+        limit: Optional[int] = None,
     ) -> list[ChatTitleIdResponse]:
         with get_db() as db:
             query = db.query(Chat).filter_by(user_id=user_id).filter_by(folder_id=None)
@@ -458,7 +455,7 @@ class ChatTable:
             ]
 
     def get_chat_list_by_chat_ids(
-            self, chat_ids: list[str], skip: int = 0, limit: int = 50
+        self, chat_ids: list[str], skip: int = 0, limit: int = 50
     ) -> list[ChatModel]:
         with get_db() as db:
             all_chats = (
@@ -566,12 +563,12 @@ class ChatTable:
             return [ChatModel.model_validate(chat) for chat in all_chats]
 
     def get_chats_by_user_id_and_search_text(
-            self,
-            user_id: str,
-            search_text: str,
-            include_archived: bool = False,
-            skip: int = 0,
-            limit: int = 60,
+        self,
+        user_id: str,
+        search_text: str,
+        include_archived: bool = False,
+        skip: int = 0,
+        limit: int = 60,
     ) -> list[ChatModel]:
         """
         Filters chats based on a search query using Python, allowing pagination using skip and limit.
@@ -610,18 +607,18 @@ class ChatTable:
                 # SQLite case: using JSON1 extension for JSON searching
                 query = query.filter(
                     (
-                            Chat.title.ilike(
-                                f"%{search_text}%"
-                            )  # Case-insensitive search in title
-                            | text(
-                        """
-                        EXISTS (
-                            SELECT 1 
-                            FROM json_each(Chat.chat, '$.messages') AS message 
-                            WHERE LOWER(message.value->>'content') LIKE '%' || :search_text || '%'
+                        Chat.title.ilike(
+                            f"%{search_text}%"
+                        )  # Case-insensitive search in title
+                        | text(
+                            """
+                            EXISTS (
+                                SELECT 1 
+                                FROM json_each(Chat.chat, '$.messages') AS message 
+                                WHERE LOWER(message.value->>'content') LIKE '%' || :search_text || '%'
+                            )
+                            """
                         )
-                        """
-                    )
                     ).params(search_text=search_text)
                 )
 
@@ -659,18 +656,18 @@ class ChatTable:
                 # PostgreSQL relies on proper JSON query for search
                 query = query.filter(
                     (
-                            Chat.title.ilike(
-                                f"%{search_text}%"
-                            )  # Case-insensitive search in title
-                            | text(
-                        """
-                        EXISTS (
-                            SELECT 1
-                            FROM json_array_elements(Chat.chat->'messages') AS message
-                            WHERE LOWER(message->>'content') LIKE '%' || :search_text || '%'
+                        Chat.title.ilike(
+                            f"%{search_text}%"
+                        )  # Case-insensitive search in title
+                        | text(
+                            """
+                            EXISTS (
+                                SELECT 1
+                                FROM json_array_elements(Chat.chat->'messages') AS message
+                                WHERE LOWER(message->>'content') LIKE '%' || :search_text || '%'
+                            )
+                            """
                         )
-                        """
-                    )
                     ).params(search_text=search_text)
                 )
 
@@ -717,7 +714,7 @@ class ChatTable:
             return [ChatModel.model_validate(chat) for chat in all_chats]
 
     def get_chats_by_folder_id_and_user_id(
-            self, folder_id: str, user_id: str
+        self, folder_id: str, user_id: str
     ) -> list[ChatModel]:
         with get_db() as db:
             query = db.query(Chat).filter_by(folder_id=folder_id, user_id=user_id)
@@ -730,7 +727,7 @@ class ChatTable:
             return [ChatModel.model_validate(chat) for chat in all_chats]
 
     def get_chats_by_folder_ids_and_user_id(
-            self, folder_ids: list[str], user_id: str
+        self, folder_ids: list[str], user_id: str
     ) -> list[ChatModel]:
         with get_db() as db:
             query = db.query(Chat).filter(
@@ -745,7 +742,7 @@ class ChatTable:
             return [ChatModel.model_validate(chat) for chat in all_chats]
 
     def update_chat_folder_id_by_id_and_user_id(
-            self, id: str, user_id: str, folder_id: str
+        self, id: str, user_id: str, folder_id: str
     ) -> Optional[ChatModel]:
         try:
             with get_db() as db:
@@ -766,7 +763,7 @@ class ChatTable:
             return [Tags.get_tag_by_name_and_user_id(tag, user_id) for tag in tags]
 
     def get_chat_list_by_user_id_and_tag_name(
-            self, user_id: str, tag_name: str, skip: int = 0, limit: int = 50
+        self, user_id: str, tag_name: str, skip: int = 0, limit: int = 50
     ) -> list[ChatModel]:
         with get_db() as db:
             query = db.query(Chat).filter_by(user_id=user_id)
@@ -797,7 +794,7 @@ class ChatTable:
             return [ChatModel.model_validate(chat) for chat in all_chats]
 
     def add_chat_tag_by_id_and_user_id_and_tag_name(
-            self, id: str, user_id: str, tag_name: str
+        self, id: str, user_id: str, tag_name: str
     ) -> Optional[ChatModel]:
         tag = Tags.get_tag_by_name_and_user_id(tag_name, user_id)
         if tag is None:
@@ -856,7 +853,7 @@ class ChatTable:
             return count
 
     def delete_tag_by_id_and_user_id_and_tag_name(
-            self, id: str, user_id: str, tag_name: str
+        self, id: str, user_id: str, tag_name: str
     ) -> bool:
         try:
             with get_db() as db:
@@ -921,7 +918,7 @@ class ChatTable:
             return False
 
     def delete_chats_by_user_id_and_folder_id(
-            self, user_id: str, folder_id: str
+        self, user_id: str, folder_id: str
     ) -> bool:
         try:
             with get_db() as db:
