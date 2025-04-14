@@ -80,8 +80,8 @@ export const chatTabSettings: Writable<ChatTabSettings> = writable({
 });
 
 export const feedbackReportSettings: Writable<FeedbackReportSettings> = writable({
-	enable: true,
-	url: 'http://10.210.106.4:7357/ticket/create'
+	url: 'http://10.210.106.4:7357/ticket/create',
+	manualUrl: 'https://renesasgroup.sharepoint.com/:p:/s/ABU-SWBD/SWBD/EfjgQ6fzTlNHpbQcVSE1S0YBtOX6BK3NqWF1sp3OarIWww?e=Q2D9ak',
 });
 
 export const showSidebar = writable(false);
@@ -190,8 +190,8 @@ type ChatTabSettings = {
 };
 
 type FeedbackReportSettings = {
-	enable: boolean;
 	url: string;
+	manualUrl: string;
 };
 
 type ModelOptions = {

@@ -27,6 +27,7 @@
 	import MenuLines from '../icons/MenuLines.svelte';
 	import AdjustmentsHorizontal from '../icons/AdjustmentsHorizontal.svelte';
 	import Bug from '../icons/Bug.svelte';
+	import BookManual from '../icons/BookManual.svelte';
 
 	import PencilSquare from '../icons/PencilSquare.svelte';
 	import Banner from '../common/Banner.svelte';
@@ -92,14 +93,29 @@
 
 				<div class="self-start flex flex-none items-center text-gray-600 dark:text-gray-400">
 					<!-- <div class="md:hidden flex self-center w-[1px] h-5 mx-2 bg-gray-300 dark:bg-stone-700" /> -->
-					{#if $feedbackReportSettings.enable}
-						<Tooltip content={'Report bug'}>
+					{#if $feedbackReportSettings.manualUrl}
+						<Tooltip content={'User Manual'}>
+							<button
+								class=" flex cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
+								on:click={() => {
+								window.open($feedbackReportSettings.manualUrl, '_blank');
+							}}
+								aria-label="User Manual"
+							>
+								<div class=" m-auto self-center">
+									<BookManual className=" size-5" strokeWidth="0.5" />
+								</div>
+							</button>
+						</Tooltip>
+					{/if}
+					{#if $feedbackReportSettings.url}
+						<Tooltip content={'Report Bug'}>
 							<button
 								class=" flex cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
 								on:click={() => {
 									window.open($feedbackReportSettings.url, '_blank');
 								}}
-								aria-label="Report bug"
+								aria-label="Report Bug"
 							>
 								<div class=" m-auto self-center">
 									<Bug className=" size-5" strokeWidth="0.5" />
