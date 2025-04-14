@@ -192,7 +192,9 @@
 			});
 
 			if ($user?.role === 'admin' && ($settings?.showChangelog ?? true)) {
-				showChangelog.set($settings?.version !== $config.version);
+				// Todo: renesas
+				// Disable show new version changelog
+				// showChangelog.set($settings?.version !== $config.version);
 			}
 
 			if ($user?.permissions?.chat?.temporary ?? true) {
