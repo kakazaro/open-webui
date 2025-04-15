@@ -27,9 +27,8 @@ ARG BUILD_HASH
 
 WORKDIR /app
 
-COPY package.json ./
-RUN npm i -g yarn
-RUN yarn install --no-lockfile --force
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
 ENV APP_BUILD_HASH=${BUILD_HASH}
