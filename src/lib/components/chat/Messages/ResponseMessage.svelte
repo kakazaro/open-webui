@@ -42,13 +42,14 @@
 
 	import DeleteConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
 
+	import Feedback from '$lib/components/admin/Evaluations/Feedbacks.svelte';
+	import Badge from '$lib/components/common/Badge.svelte';
 	import Error from './Error.svelte';
 	import Citations from './Citations.svelte';
 	import CodeExecutions from './CodeExecutions.svelte';
 	import ContentRenderer from './ContentRenderer.svelte';
 	import { KokoroWorker } from '$lib/workers/KokoroWorker';
-	import Feedback from '$lib/components/admin/Evaluations/Feedbacks.svelte';
-	import Badge from '$lib/components/common/Badge.svelte';
+	import FileItem from '$lib/components/common/FileItem.svelte';
 
 	interface MessageType {
 		id: string;
@@ -159,7 +160,8 @@
 
 	const copyToClipboard = async (text) => {
 		text = removeAllDetails(text);
-		const res = await _copyToClipboard(text);
+
+		const res = await _copyToClipboard(text, $settings?.copyFormatted ?? false);
 		if (res) {
 			toast.success($i18n.t('Copying to clipboard was successful!'));
 		}
@@ -631,19 +633,20 @@
 						</div>
 					{/if}
 
-					<div class="chat-{message.role} w-full min-w-full markdown-prose">
-						<div>
-							{#if (message?.statusHistory ?? [...(message?.status ? [message?.status] : [])]).length > 0}
-								{@const status = (
-									message?.statusHistory ?? [...(message?.status ? [message?.status] : [])]
-								).at(-1)}
-								{#if !status?.hidden}
-									<div class="status-description flex items-center gap-2 py-0.5">
-										{#if status?.done === false}
-											<div class="">
-												<Spinner className="size-4" />
-											</div>
-										{/if}
+			<div>
+				<div class="chat-{message.role} w-full min-w-full markdown-prose">
+					<div>
+						{#if (message?.statusHistory ?? [...(message?.status ? [message?.status] : [])]).length > 0}
+							{@const status = (
+								message?.statusHistory ?? [...(message?.status ? [message?.status] : [])]
+							).at(-1)}
+							{#if !status?.hidden}
+								<div class="status-description flex items-center gap-2 py-0.5">
+									{#if status?.done === false}
+										<div class="">
+											<Spinner className="size-4" />
+										</div>
+									{/if}
 
 										{#if status?.action === 'web_search' && status?.urls}
 											<WebSearchResults {status}>
@@ -689,25 +692,46 @@
 													class="{status?.done === false
 													? 'shimmer'
 													: ''} text-gray-500 dark:text-gray-500 text-base line-clamp-1 text-wrap"
-												>
-													<!-- $i18n.t(`Searching "{{searchQuery}}"`) -->
-													{#if status?.description.includes('{{searchQuery}}')}
-														{$i18n.t(status?.description, {
-															searchQuery: status?.query
-														})}
-													{:else if status?.description === 'No search query generated'}
-														{$i18n.t('No search query generated')}
-													{:else if status?.description === 'Generating search query'}
-														{$i18n.t('Generating search query')}
-													{:else}
-														{status?.description}
-													{/if}
-												</div>
+											>
+												<!-- $i18n.t(`Searching "{{searchQuery}}"`) -->
+												{#if status?.description.includes('{{searchQuery}}')}
+													{$i18n.t(status?.description, {
+														searchQuery: status?.query
+													})}
+												{:else if status?.description === 'No search query generated'}
+													{$i18n.t('No search query generated')}
+												{:else if status?.description === 'Generating search query'}
+													{$i18n.t('Generating search query')}
+												{:else}
+													{status?.description}
+												{/if}
 											</div>
+										</div>
+									{/if}
+								</div>
+							{/if}
+						{/if}
+
+						{#if message?.files && message.files?.filter((f) => f.type === 'image').length > 0}
+							<div class="my-1 w-full flex overflow-x-auto gap-2 flex-wrap">
+								{#each message.files as file}
+									<div>
+										{#if file.type === 'image'}
+											<Image src={file.url} alt={message.content} />
+										{:else}
+											<FileItem
+												item={file}
+												url={file.url}
+												name={file.name}
+												type={file.type}
+												size={file?.size}
+												colorClassName="bg-white dark:bg-gray-850 "
+											/>
 										{/if}
 									</div>
-								{/if}
-							{/if}
+								{/each}
+							</div>
+						{/if}
 
 							{#if edit === true}
 								<div class="w-full bg-gray-50 dark:bg-gray-800 rounded-3xl px-5 py-3 my-2">
@@ -1016,17 +1040,18 @@
 										</button>
 									</Tooltip>
 
+								{#if $user?.role === 'admin' || ($user?.permissions?.chat?.tts ?? true)}
 									<Tooltip content={$i18n.t('Read Aloud')} placement="bottom">
 										<button
 											id="speak-button-{message.id}"
 											class="{isLastMessage
-											? 'visible'
-											: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition"
+												? 'visible'
+												: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition"
 											on:click={() => {
-											if (!loadingSpeech) {
-												toggleSpeakMessage();
-											}
-										}}
+												if (!loadingSpeech) {
+													toggleSpeakMessage();
+												}
+											}}
 										>
 											{#if loadingSpeech}
 												<svg
@@ -1036,25 +1061,25 @@
 													xmlns="http://www.w3.org/2000/svg"
 												>
 													<style>
-                              .spinner_S1WN {
-                                  animation: spinner_MGfb 0.8s linear infinite;
-                                  animation-delay: -0.8s;
-                              }
+														.spinner_S1WN {
+															animation: spinner_MGfb 0.8s linear infinite;
+															animation-delay: -0.8s;
+														}
 
-                              .spinner_Km9P {
-                                  animation-delay: -0.65s;
-                              }
+														.spinner_Km9P {
+															animation-delay: -0.65s;
+														}
 
-                              .spinner_JApP {
-                                  animation-delay: -0.5s;
-                              }
+														.spinner_JApP {
+															animation-delay: -0.5s;
+														}
 
-                              @keyframes spinner_MGfb {
-                                  93.75%,
-                                  100% {
-                                      opacity: 0.2;
-                                  }
-                              }
+														@keyframes spinner_MGfb {
+															93.75%,
+															100% {
+																opacity: 0.2;
+															}
+														}
 													</style>
 													<circle class="spinner_S1WN" cx="4" cy="12" r="3" />
 													<circle class="spinner_S1WN spinner_Km9P" cx="12" cy="12" r="3" />
@@ -1093,6 +1118,7 @@
 											{/if}
 										</button>
 									</Tooltip>
+								{/if}
 
 									{#if $config?.features.enable_image_generation && ($user?.role === 'admin' || $user?.permissions?.features?.image_generation) && !readOnly}
 										<Tooltip content={$i18n.t('Generate Image')} placement="bottom">
