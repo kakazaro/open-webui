@@ -2070,7 +2070,7 @@
 							<div
 								class="absolute bottom-0 text-xs text-gray-500 text-center line-clamp-1 right-0 left-0"
 							>
-								 {'GenAI\'s answers are not always correct. Please check for important information.'}
+								 {$i18n.t("GenAI's answers are not always correct. Please check for important information")}
 							</div>
 						</div>
 					{:else}

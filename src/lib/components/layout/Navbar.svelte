@@ -86,7 +86,7 @@
 			<div class="self-start flex flex-none items-center text-gray-600 dark:text-gray-400">
 				<!-- <div class="md:hidden flex self-center w-[1px] h-5 mx-2 bg-gray-300 dark:bg-stone-700" /> -->
 				{#if $feedbackReportSettings.manualUrl}
-					<Tooltip content={'User Manual'}>
+					<Tooltip content={$i18n.t('User Manual')}>
 						<button
 							class=" flex cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
 							on:click={() => {
@@ -101,7 +101,7 @@
 					</Tooltip>
 				{/if}
 				{#if $feedbackReportSettings.url}
-					<Tooltip content={'Report Bug'}>
+					<Tooltip content={$i18n.t('Report Bug')}>
 						<button
 							class=" flex cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
 							on:click={() => {

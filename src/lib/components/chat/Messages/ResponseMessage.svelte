@@ -1456,6 +1456,7 @@
 				</div>
 			</div>
 		</div>
+		</div>
 	</div>
 	{#if feedback}
 		<div class="flex gap-2 mt-2">
