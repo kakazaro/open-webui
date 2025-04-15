@@ -1,7 +1,7 @@
 # This is the GitLab CI/CD configuration file
 stages:
   - build
-  - deploy
+#  - deploy
 
 # Define the job
 build_docker_image:
@@ -36,5 +36,4 @@ deploy:
   tags:
     - ui-nodejs
   script:
-    - echo "hello world"
-    # - bash ./run.renesas.sh
+    - bash ./run.renesas.sh
