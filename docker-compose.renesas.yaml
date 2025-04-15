@@ -29,6 +29,7 @@ services:
       - "7380:7380"
     depends_on:
       - open-webui
+    restart: unless-stopped
 
 volumes:
   open-webui: { }
