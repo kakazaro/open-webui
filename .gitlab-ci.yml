@@ -1,6 +1,17 @@
-deploy:
+deploy_main:
   stage: deploy
   tags:
     - ui-nodejs
   script:
     - bash ./run.renesas.sh
+  only:
+    - main
+
+#deploy_dev:
+#  stage: deploy
+#  tags:
+#    - ui-nodejs
+#  script:
+#    - bash ./run.renesas.develop.sh
+#  only:
+#    - develop
