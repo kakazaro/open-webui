@@ -10,16 +10,16 @@ variables:
 build_image:
   stage: build
   tags:
-    - windows
-    - shell
+    - linux
+    - build
   script:
     - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
 
 push_image:
   stage: push_image
   tags:
-    - windows
-    - shell
+    - linux
+    - build
   script:
     - docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
     - docker push ${IMAGE_NAME}:${IMAGE_TAG}
@@ -27,7 +27,9 @@ push_image:
 deploy_main:
   stage: deploy
   tags:
-    - ui-nodejs
+    - linux
+    - deploy
+    - web
   script:
 #    - cp $SSL_CRT ./ssl/nginx.crt
 #    - cp $SSL_KEY ./ssl/nginx.key
