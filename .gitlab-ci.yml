@@ -1,18 +1,13 @@
 stages:
-  - prepare
   - deploy
-
-prepare:
-  stage: prepare
-  script:
-    - cp $SSL_CRT ./ssl/nginx.crt
-    - cp $SSL_KEY ./ssl/nginx.key
 
 deploy_main:
   stage: deploy
   tags:
     - ui-nodejs
   script:
+    - cp $SSL_CRT ./ssl/nginx.crt
+    - cp $SSL_KEY ./ssl/nginx.key
     - export MICROSOFT_CLIENT_ID=$MICROSOFT_CLIENT_ID
     - export MICROSOFT_CLIENT_SECRET=$MICROSOFT_CLIENT_SECRET
     - export MICROSOFT_CLIENT_TENANT_ID=$MICROSOFT_CLIENT_TENANT_ID
