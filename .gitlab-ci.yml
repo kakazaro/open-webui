@@ -13,7 +13,7 @@ build_image:
     - windows
     - shell
   script:
-    - docker build -f Dockerfile.renesas -t $IMAGE_NAME:$IMAGE_TAG .
+    - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
 
 push_image:
   stage: push_image
@@ -21,8 +21,8 @@ push_image:
     - windows
     - shell
   script:
-    - docker login -u $DOCKER_USER -p $DOCKER_PASS
-    - docker push $IMAGE_NAME:$IMAGE_TAG
+    - docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+    - docker push ${IMAGE_NAME}:${IMAGE_TAG}
 
 deploy_main:
   stage: deploy
