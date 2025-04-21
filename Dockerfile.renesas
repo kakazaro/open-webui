@@ -22,7 +22,7 @@ ARG GID=0
 
 ######## WebUI frontend ########
 FROM --platform=$BUILDPLATFORM node:22-alpine3.20 AS build
-ENV NODE_OPTIONS=--max-old-space-size=4096
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 ARG BUILD_HASH
 
 WORKDIR /app
@@ -62,7 +62,7 @@ ENV OLLAMA_BASE_URL="/ollama" \
 
 ## API Key and Security Config ##
 ENV OPENAI_API_KEY="" \
-    WEBUI_SECRET_KEY="my_secret_webui_key" \
+    WEBUI_SECRET_KEY="" \
     SCARF_NO_ANALYTICS=true \
     DO_NOT_TRACK=true \
     ANONYMIZED_TELEMETRY=false
