@@ -1,9 +1,7 @@
 services:
   open-webui:
-    build:
-      context: .
-      dockerfile: Dockerfile.renesas
-    image: gen-open-webui:latest
+    image: kakazaro/open-webui:latest
+    pull_policy: always
     container_name: open-webui
     volumes:
       - open-webui:/app/backend/data

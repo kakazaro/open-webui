@@ -1,16 +1,40 @@
 stages:
+  - build
+  - push_image
   - deploy
+
+variables:
+  IMAGE_NAME: kakazaro/open-webui
+  IMAGE_TAG: latest
+
+build_image:
+  stage: build
+  tags:
+    - windows
+    - shell
+  script:
+    - docker build -f Dockerfile.renesas -t $IMAGE_NAME:$IMAGE_TAG .
+
+push_image:
+  stage: push_image
+  tags:
+    - windows
+    - shell
+  script:
+    - docker login -u $DOCKER_USER -p $DOCKER_PASS
+    - docker push $IMAGE_NAME:$IMAGE_TAG
 
 deploy_main:
   stage: deploy
   tags:
     - ui-nodejs
   script:
-    - cp $SSL_CRT ./ssl/nginx.crt
-    - cp $SSL_KEY ./ssl/nginx.key
-    - export MICROSOFT_CLIENT_ID=$MICROSOFT_CLIENT_ID
-    - export MICROSOFT_CLIENT_SECRET=$MICROSOFT_CLIENT_SECRET
-    - export MICROSOFT_CLIENT_TENANT_ID=$MICROSOFT_CLIENT_TENANT_ID
-    - bash ./run.renesas.sh
+#    - cp $SSL_CRT ./ssl/nginx.crt
+#    - cp $SSL_KEY ./ssl/nginx.key
+#    - export MICROSOFT_CLIENT_ID=$MICROSOFT_CLIENT_ID
+#    - export MICROSOFT_CLIENT_SECRET=$MICROSOFT_CLIENT_SECRET
+#    - export MICROSOFT_CLIENT_TENANT_ID=$MICROSOFT_CLIENT_TENANT_ID
+#    - bash ./run.renesas.sh
+    - echo "deploy"
   only:
     - main
