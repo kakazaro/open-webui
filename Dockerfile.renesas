@@ -153,6 +153,8 @@ RUN #python -c "import os; from faster_whisper import WhisperModel; WhisperModel
 
 RUN #python -c "import os; import tiktoken; tiktoken.get_encoding(os.environ['TIKTOKEN_ENCODING_NAME'])"
 
+RUN mkdir -p /app/backend/data/
+
 RUN chown -R $UID:$GID /app/backend/data/
 
 
