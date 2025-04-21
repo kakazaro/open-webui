@@ -23,6 +23,7 @@ push_image:
   script:
     - docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
     - docker push ${IMAGE_NAME}:${IMAGE_TAG}
+    - docker image prune -f
 
 deploy_main:
   stage: deploy
@@ -31,12 +32,12 @@ deploy_main:
     - deploy
     - web
   script:
-#    - cp $SSL_CRT ./ssl/nginx.crt
-#    - cp $SSL_KEY ./ssl/nginx.key
-#    - export MICROSOFT_CLIENT_ID=$MICROSOFT_CLIENT_ID
-#    - export MICROSOFT_CLIENT_SECRET=$MICROSOFT_CLIENT_SECRET
-#    - export MICROSOFT_CLIENT_TENANT_ID=$MICROSOFT_CLIENT_TENANT_ID
-#    - bash ./run.renesas.sh
-    - echo "deploy"
+    - cp $SSL_CRT ./ssl/nginx.crt
+    - cp $SSL_KEY ./ssl/nginx.key
+    - export MICROSOFT_CLIENT_ID=$MICROSOFT_CLIENT_ID
+    - export MICROSOFT_CLIENT_SECRET=$MICROSOFT_CLIENT_SECRET
+    - export MICROSOFT_CLIENT_TENANT_ID=$MICROSOFT_CLIENT_TENANT_ID
+    - docker compose -f docker-compose.renesas.yaml up -d
+    - docker image prune -f
   only:
     - main
