@@ -23,7 +23,7 @@ push_image:
   script:
     - docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
     - docker push ${IMAGE_NAME}:${IMAGE_TAG}
-    - docker image prune -f
+    - docker rmi ${IMAGE_NAME}:${IMAGE_TAG}
 
 deploy_main:
   stage: deploy
