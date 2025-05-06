@@ -204,9 +204,11 @@
 		await initHandler();
 		await tick();
 
-		const messageElement = document.getElementById(`message-${messageId}`);
-		if (messageElement) {
-			messageElement.scrollIntoView({ block: 'start' });
+		if ($settings?.scrollOnBranchChange ?? true) {
+			const messageElement = document.getElementById(`message-${messageId}`);
+			if (messageElement) {
+				messageElement.scrollIntoView({ block: 'start' });
+			}
 		}
 	});
 </script>
@@ -242,10 +244,9 @@
 									messageChildrenIds = history.messages[currentMessageId].childrenIds;
 								}
 								history.currentId = currentMessageId;
-
-								await tick();
-								await updateChat();
-								triggerScroll();
+								// await tick();
+								// await updateChat();
+								// triggerScroll();
 							}
 						}}
 					>
@@ -298,7 +299,7 @@
 
 							<div class="w-full rounded-xl pl-5 pr-2 py-2">
 								<Name>
-									Merged Response
+									{$i18n.t('Merged Response')}
 
 									{#if message.timestamp}
 										<span
