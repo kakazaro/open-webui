@@ -2,6 +2,7 @@ stages:
   - build
   - push_image
   - deploy
+  - clean
 
 variables:
   IMAGE_NAME: kakazaro/open-webui
@@ -41,3 +42,11 @@ deploy_main:
     - docker image prune -f
   only:
     - main
+
+clean storage:
+  stage: clean
+  tags:
+    - linux
+    - build
+  script:
+    - docker system prune -f --volumes
