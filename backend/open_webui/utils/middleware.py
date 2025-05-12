@@ -696,10 +696,6 @@ def replace_command_in_payload(payload):
 
 
 def attach_file_in_payload(payload, metadata):
-    def attach_file(mes, prefix):
-        if isinstance(mes['content'], str):
-            mes['content'] = prefix + 'User\'s query: "' + mes['content'] + '"'
-
     if 'message_attached_files' in metadata and metadata['files']:
         message_attached_files = metadata['message_attached_files']
         for i, message in enumerate(payload['messages']):
@@ -712,10 +708,11 @@ def attach_file_in_payload(payload, metadata):
                             attached_content += 'User uploaded a file named "'+ file['name'] +'" with the following content:\n"""'+ file['content'] +'"""\n\n'
                     if attached_content:
                         if isinstance(message['content'], str):
-                            attach_file(message, attached_content)
+                            message['content'] = attached_content + 'User\'s query: "' + message['content'] + '"'
                         elif isinstance(message['content'], list):
                             for sub in message['content']:
-                                attach_file(sub, attached_content)
+                                if 'text' in sub:
+                                    sub['text'] = attached_content + 'User\'s query: "' + sub['text'] + '"'
 
 
 async def process_chat_payload(request, form_data, user, metadata, model):
@@ -1009,7 +1006,7 @@ async def process_chat_payload(request, form_data, user, metadata, model):
     attach_file_in_payload(form_data, metadata)
     replace_command_in_payload(form_data)
     # print('after form_data')
-    # print(json.dumps(form_data))
+    print(json.dumps(form_data))
     # print(json.dumps(metadata))
 
     return form_data, metadata, events
