@@ -656,6 +656,45 @@ def apply_params_to_form_data(form_data, model):
     return form_data
 
 
+# TODO: renesas
+CODING_COMMANDS = [
+    {
+        "command": "code_review",
+        "replace": "Please review the code (Consider: 1. Code quality and adherence to best practices 2. Potential bugs or edge cases 3. Performance optimizations 4. Readability and maintainability 5. Any security concerns Suggest improvements and explain your reasoning for each suggestion.)"
+    },
+    {
+        "command": "code_refactor",
+        "replace": "please go through the following thought process to refactor it according to coding guidelines: 1. Analyze the current structure and identify areas for improvement. 2. Consider best practices in code organization, readability, and efficiency. 3. Gather relevant coding standards or conventions that apply. 4. After this analysis, present the refactored code snippet and a brief summary of the improvements made. Refactor the code snippet above according to the guidelines and provide: - The optimized code snippet only. - A few bullet points highlighting the changes and improvements made."
+    },
+    {
+        "command": "code_explain",
+        "replace": "Provide a detailed explanation of the code snippet. Begin with a concise overview of its main purpose, then generate a series of reasoning steps that break down each statement. For each statement, clarify its function, expected outcome, and any external information or context needed to understand it fully. If necessary, suggest actions to explore related details or examples that could enhance comprehension."
+    },
+    {
+        "command": "code_generation_C",
+        "replace": "Create C/C++ code to realize the description below. Please include enough comments and error handling."
+    },
+    {
+        "command": "code_generation_Py",
+        "replace": "Create Python code to realize the description below. Please include enough comments and error handling."
+    },
+    {
+        "command": "unit_test_generation",
+        "replace": "Write a comprehensive set of unit tests for the selected code. It should setup, run tests that check for correctness including important edge cases, and teardown. Ensure that the tests are complete and sophisticated. Give the tests just as chat output."
+    },
+]
+
+
+def replace_command_in_payload(payload):
+    for message in payload["messages"]:
+        # Ensure the "content" key exists and is of type string
+        if isinstance(message.get("content"), str):
+            for command in CODING_COMMANDS:
+                command_pattern = f"/{command['command']}"
+                if command_pattern in message["content"]:
+                    message["content"] = re.sub(command_pattern, command["replace"], message["content"])
+
+
 async def process_chat_payload(request, form_data, user, metadata, model):
 
     form_data = apply_params_to_form_data(form_data, model)
@@ -940,6 +979,14 @@ async def process_chat_payload(request, form_data, user, metadata, model):
                 },
             }
         )
+
+    # print('before form_data')
+    # print(form_data["messages"])
+    replace_command_in_payload(form_data)
+    # print('after form_data')
+    # print(json.dumps(form_data))
+    # print(json.dumps(metadata))
+    # print(form_data["messages"][0])
 
     return form_data, metadata, events
 
