@@ -929,17 +929,17 @@ async def process_chat_payload(request, form_data, user, metadata, model):
         context_string = ""
         citation_idx = {}
         for source_idx, source in enumerate(sources, 1):
-            if "source" in source and "file" in source["source"] and "data" in source["source"]["file"] and "content" in \
-                source["source"]["file"]["data"] and source["source"]["file"]["data"]["content"] and isinstance(
-                source["source"]["file"]["data"]["content"], str):
-                # Todo: renesas: Improve file content input on query
-                file_id = source["source"]["file"]['id']
-                if file_id not in citation_idx:
-                    citation_idx[file_id] = len(citation_idx) + 1
-                context_string += (
-                    f'<source id="{citation_idx[file_id]}">{source["source"]["file"]["data"]["content"]}</source>\n'
-                )
-            elif "document" in source:
+            # if "source" in source and "file" in source["source"] and "data" in source["source"]["file"] and "content" in \
+            #     source["source"]["file"]["data"] and source["source"]["file"]["data"]["content"] and isinstance(
+            #     source["source"]["file"]["data"]["content"], str):
+            #     # Todo: renesas: Improve file content input on query
+            #     file_id = source["source"]["file"]['id']
+            #     if file_id not in citation_idx:
+            #         citation_idx[file_id] = len(citation_idx) + 1
+            #     context_string += (
+            #         f'<source id="{citation_idx[file_id]}">{source["source"]["file"]["data"]["content"]}</source>\n'
+            #     )
+            if "document" in source:
                 for doc_context, doc_meta in zip(
                     source["document"], source["metadata"]
                 ):
@@ -1012,7 +1012,7 @@ async def process_chat_payload(request, form_data, user, metadata, model):
     attach_file_in_payload(form_data, metadata)
     replace_command_in_payload(form_data)
     # print('after form_data')
-    print(json.dumps(form_data))
+    # print(json.dumps(form_data))
     # print(json.dumps(metadata))
 
     return form_data, metadata, events
