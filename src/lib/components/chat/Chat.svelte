@@ -1573,8 +1573,10 @@
 			message.files?.map((file) => ({
 					id: file.id,
 					name: file.name,
+					type: file.type,
 					content: file.file?.data?.content,
-				})).filter((file) => file.type !== 'image' && file.content) ?? []
+					url: file.url,
+				})) ?? []
 		);
 
 		messages = messages

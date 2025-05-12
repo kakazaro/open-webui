@@ -696,20 +696,26 @@ def replace_command_in_payload(payload):
 
 
 def attach_file_in_payload(payload, metadata):
-    if 'message_attached_files' in metadata and metadata['files']:
+    if 'message_attached_files' in metadata and metadata['message_attached_files']:
         message_attached_files = metadata['message_attached_files']
         for i, message in enumerate(payload['messages']):
             if i < len(message_attached_files):
                 attached_files = message_attached_files[i]
                 if attached_files:
                     attached_content = ""
+                    image_count = 0
                     for file in attached_files:
-                        if file['content']:
+                        if file['type'] == 'image':
+                            image_count += 1
+                        elif file['content']:
                             attached_content += 'User uploaded a file named "'+ file['name'] +'" with the following content:\n"""'+ file['content'] +'"""\n\n'
+                    if image_count > 0:
+                        attached_content += 'User uploaded ' + str(image_count) + ' image(s) (see below)\n\n'
                     if attached_content:
                         if isinstance(message['content'], str):
                             message['content'] = attached_content + 'User\'s query: "' + message['content'] + '"'
                         elif isinstance(message['content'], list):
+                            text = ""
                             for sub in message['content']:
                                 if 'text' in sub:
                                     sub['text'] = attached_content + 'User\'s query: "' + sub['text'] + '"'
