@@ -1569,6 +1569,14 @@
 			}))
 		].filter((message) => message);
 
+		const messageAttachedFiles = messages.map((message) =>
+			message.files?.map((file) => ({
+					id: file.id,
+					name: file.name,
+					content: file.file?.data?.content,
+				})).filter((file) => file.type !== 'image' && file.content) ?? []
+		);
+
 		messages = messages
 			.map((message, idx, arr) => ({
 				role: message.role,
@@ -1619,6 +1627,7 @@
 				files: (files?.length ?? 0) > 0 ? files : undefined,
 				tool_ids: selectedToolIds.length > 0 ? selectedToolIds : undefined,
 				tool_servers: $toolServers,
+				message_attached_files: messageAttachedFiles,
 
 				features: {
 					image_generation:

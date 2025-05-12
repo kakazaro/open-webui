@@ -695,6 +695,29 @@ def replace_command_in_payload(payload):
                     message["content"] = re.sub(command_pattern, command["replace"], message["content"])
 
 
+def attach_file_in_payload(payload, metadata):
+    def attach_file(mes, prefix):
+        if isinstance(mes['content'], str):
+            mes['content'] = prefix + 'User\'s query: "' + mes['content'] + '"'
+
+    if 'message_attached_files' in metadata and metadata['files']:
+        message_attached_files = metadata['message_attached_files']
+        for i, message in enumerate(payload['messages']):
+            if i < len(message_attached_files):
+                attached_files = message_attached_files[i]
+                if attached_files:
+                    attached_content = ""
+                    for file in attached_files:
+                        if file['content']:
+                            attached_content += 'User uploaded a file named "'+ file['name'] +'" with the following content:\n"""'+ file['content'] +'"""\n\n'
+                    if attached_content:
+                        if isinstance(message['content'], str):
+                            attach_file(message, attached_content)
+                        elif isinstance(message['content'], list):
+                            for sub in message['content']:
+                                attach_file(sub, attached_content)
+
+
 async def process_chat_payload(request, form_data, user, metadata, model):
 
     form_data = apply_params_to_form_data(form_data, model)
@@ -941,20 +964,21 @@ async def process_chat_payload(request, form_data, user, metadata, model):
 
         # Workaround for Ollama 2.0+ system prompt issue
         # TODO: replace with add_or_update_system_message
-        if model.get("owned_by") == "ollama":
-            form_data["messages"] = prepend_to_first_user_message_content(
-                rag_template(
-                    request.app.state.config.RAG_TEMPLATE, context_string, prompt
-                ),
-                form_data["messages"],
-            )
-        else:
-            form_data["messages"] = add_or_update_system_message(
-                rag_template(
-                    request.app.state.config.RAG_TEMPLATE, context_string, prompt
-                ),
-                form_data["messages"],
-            )
+        # TODO: renesas improve
+        # if model.get("owned_by") == "ollama":
+        #     form_data["messages"] = prepend_to_first_user_message_content(
+        #         rag_template(
+        #             request.app.state.config.RAG_TEMPLATE, context_string, prompt
+        #         ),
+        #         form_data["messages"],
+        #     )
+        # else:
+        #     form_data["messages"] = add_or_update_system_message(
+        #         rag_template(
+        #             request.app.state.config.RAG_TEMPLATE, context_string, prompt
+        #         ),
+        #         form_data["messages"],
+        #     )
 
     # If there are citations, add them to the data_items
     sources = [
@@ -982,11 +1006,11 @@ async def process_chat_payload(request, form_data, user, metadata, model):
 
     # print('before form_data')
     # print(form_data["messages"])
+    attach_file_in_payload(form_data, metadata)
     replace_command_in_payload(form_data)
     # print('after form_data')
     # print(json.dumps(form_data))
     # print(json.dumps(metadata))
-    # print(form_data["messages"][0])
 
     return form_data, metadata, events
 
