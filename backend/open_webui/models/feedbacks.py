@@ -8,7 +8,7 @@ from open_webui.models.chats import Chats
 from open_webui.models.users import User, UserModel
 from open_webui.env import SRC_LOG_LEVELS
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import BigInteger, Column, Text, JSON, Boolean
+from sqlalchemy import BigInteger, Column, Text, JSON, Boolean, func, case, cast
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["MODELS"])
@@ -108,6 +108,17 @@ class FeedbackUserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class FeedbackUserPaginationResponse(BaseModel):
+    count: int
+    list: list[FeedbackUserResponse]
+
+
+class FeedbackEvaluate(BaseModel):
+    model_id: str
+    count: int
+    possible: int
+    negative: int
+
 
 class FeedbackTable:
     def insert_new_feedback(
@@ -187,6 +198,67 @@ class FeedbackTable:
                 )
                 for feedback, user in results
             ]
+
+    def get_all_feedbacks_with_user_pagination(self, limit: int = 10, page: int = 1) -> FeedbackUserPaginationResponse:
+        # Calculate the offset based on page and limit
+        offset = (page - 1) * limit
+        with get_db() as db:
+            count = db.query(func.count(Feedback.id)).scalar()
+            results = (
+                db.query(Feedback, User)
+                .outerjoin(User, Feedback.user_id == User.id)
+                .order_by(Feedback.updated_at.desc())
+                .limit(limit)  # Limit the number of results by the specified limit
+                .offset(offset)  # Skip the specified number of results
+                .all()
+            )
+
+            return FeedbackUserPaginationResponse.model_validate({
+                'count': count,
+                'list': [
+                    FeedbackUserResponse(
+                        **feedback.__dict__,
+                        user=UserModel.model_validate(user) if user else None
+                    )
+                    for feedback, user in results
+                ]
+            })
+
+    def get_feedbacks_grouped_by_model_id(self) -> list[FeedbackEvaluate]:
+        with get_db() as db:
+            # Aggregate feedback based on the model_id in data
+            results = (
+                db.query(
+                    func.json_extract(Feedback.data, '$.model_id').label('model_id'),
+                    func.sum(
+                        case(
+                            (cast(func.json_extract(Feedback.data, '$.rating'), BigInteger) > 0, 1),
+                            else_=0
+                        )
+                    ).label('possible'),
+                    func.sum(
+                        case(
+                            (cast(func.json_extract(Feedback.data, '$.rating'), BigInteger) < 0, 1),
+                            else_=0
+                        )
+                    ).label('negative')
+                )
+                .group_by(func.json_extract(Feedback.data, '$.model_id'))
+                .all()
+            )
+
+            # Transform the results into a list of dictionaries for easier consumption
+            feedback_summary = [
+                FeedbackEvaluate(**{
+                    "model_id": result.model_id,
+                    "count": result.possible + result.negative,
+                    "possible": result.possible,
+                    "negative": result.negative
+                })
+                for result in results
+            ]
+
+            return feedback_summary
 
     def get_feedbacks_by_type(self, type: str) -> list[FeedbackModel]:
         with get_db() as db:

@@ -8,6 +8,8 @@ from open_webui.models.feedbacks import (
     FeedbackResponse,
     FeedbackForm,
     Feedbacks,
+    FeedbackEvaluate,
+    FeedbackUserPaginationResponse,
 )
 
 from open_webui.constants import ERROR_MESSAGES
@@ -73,6 +75,19 @@ async def get_all_feedbacks(user=Depends(get_admin_user)):
 async def delete_all_feedbacks(user=Depends(get_admin_user)):
     success = Feedbacks.delete_all_feedbacks()
     return success
+
+
+@router.get("/feedbacks/list", response_model=FeedbackUserPaginationResponse)
+async def get_all_feedbacks_pagination(
+        limit: Optional[int] = None,
+        page: Optional[int] = None,
+        user=Depends(get_admin_user)):
+    return Feedbacks.get_all_feedbacks_with_user_pagination(limit, page)
+
+
+@router.get("/feedbacks/evaluate", response_model=list[FeedbackEvaluate])
+async def get_feedbacks_evaluate(user=Depends(get_admin_user)):
+    return Feedbacks.get_feedbacks_grouped_by_model_id()
 
 
 @router.get("/feedbacks/all/export", response_model=list[FeedbackModel])
@@ -157,7 +172,7 @@ async def delete_feedback_by_id(id: str, user=Depends(get_verified_user)):
     return success
 
 @router.get("/feedbacks/chat/{id}", response_model=list[FeedbackUserResponse])
-async def get_feedbacks_by_chat_id(id: str, user=Depends(get_verified_user)):
+async def get_feedbacks_by_chat_id(id: str):
     feedbacks = Feedbacks.get_feedbacks_by_chat_id(chat_id=id)
     return [
         FeedbackUserResponse(

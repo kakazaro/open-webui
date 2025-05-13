@@ -4,8 +4,10 @@
 	import Leaderboard from './Evaluations/Leaderboard.svelte';
 	import Feedbacks from './Evaluations/Feedbacks.svelte';
 
-	import { getAllFeedbacks } from '$lib/apis/evaluations';
+	// import { getAllFeedbacks } from '$lib/apis/evaluations';
 	import Chats from '$lib/components/admin/Evaluations/Chats.svelte';
+	import NewLeaderboard from '$lib/components/admin/Evaluations/NewLeaderboard.svelte';
+	import NewFeedbacks from '$lib/components/admin/Evaluations/NewFeedbacks.svelte';
 
 	const i18n = getContext('i18n');
 
@@ -15,7 +17,7 @@
 	let feedbacks = [];
 
 	onMount(async () => {
-		feedbacks = await getAllFeedbacks(localStorage.token);
+		// feedbacks = await getAllFeedbacks(localStorage.token);
 		loaded = true;
 
 		const containerElement = document.getElementById('users-tabs-container');
@@ -118,9 +120,9 @@
 
 		<div class="flex-1 mt-1 lg:mt-0 overflow-y-scroll">
 			{#if selectedTab === 'leaderboard'}
-				<Leaderboard {feedbacks} />
+				<NewLeaderboard />
 			{:else if selectedTab === 'feedbacks'}
-				<Feedbacks {feedbacks} />
+				<NewFeedbacks />
 			{:else if selectedTab === 'chats'}
 				<Chats />
 			{/if}

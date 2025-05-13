@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { models } from '$lib/stores';
 	import { toast } from 'svelte-sonner';
 	import fileSaver from 'file-saver';
 	const { saveAs } = fileSaver;
@@ -10,45 +11,49 @@
 	import { onMount, getContext } from 'svelte';
 	const i18n = getContext('i18n');
 
-	import { deleteFeedbackById, exportAllFeedbacks, getAllFeedbacks } from '$lib/apis/evaluations';
+	import {
+		deleteFeedbackById,
+		exportAllFeedbacks,
+		getAllFeedbacksPagination
+	} from '$lib/apis/evaluations';
 
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
 	import ArrowDownTray from '$lib/components/icons/ArrowDownTray.svelte';
 	import Badge from '$lib/components/common/Badge.svelte';
-	import CloudArrowUp from '$lib/components/icons/CloudArrowUp.svelte';
 	import Pagination from '$lib/components/common/Pagination.svelte';
 	import FeedbackMenu from './FeedbackMenu.svelte';
 	import EllipsisHorizontal from '$lib/components/icons/EllipsisHorizontal.svelte';
 
-	export let feedbacks = [];
+	let feedbacks: Feedback[] = [];
+	let count = 0;
 
+	let perPage = 20;
 	let page = 1;
-	$: paginatedFeedbacks = feedbacks.slice((page - 1) * 10, page * 10);
 
-	type Feedback = {
-		id: string;
-		data: {
-			rating: number;
-			model_id: string;
-			sibling_model_ids: string[] | null;
-			reason: string;
-			comment: string;
-			tags: string[];
-		};
-		user: {
-			name: string;
-			profile_image_url: string;
-		};
-		updated_at: number;
+	// Function to load chats
+	const loadFeedback = async () => {
+		const res = await getAllFeedbacksPagination(localStorage.token, perPage, page);
+		count = res.count;
+		feedbacks = res.list?.map(feedback => ({
+			...feedback,
+			data: {
+				...(feedback.data || {}),
+				model: $models.find(model => model.id === feedback.data?.model_id)?.name ?? feedback.data?.model_id,
+				sibling_models: feedback.data?.sibling_model_ids?.map(id => $models.find(model => model.id === id)?.name ?? id)
+			}
+		}));
 	};
 
-	type ModelStats = {
-		rating: number;
-		won: number;
-		lost: number;
-	};
+	// Load chats when the component is first mounted
+	onMount(() => {
+		loadFeedback();
+	});
 
-	//////////////////////
+	$: if (page) {
+		loadFeedback();
+	}
+
+		//////////////////////
 	//
 	// CRUD operations
 	//
@@ -62,33 +67,6 @@
 		if (response) {
 			feedbacks = feedbacks.filter((f) => f.id !== feedbackId);
 		}
-	};
-
-	const shareHandler = async () => {
-		toast.success($i18n.t('Redirecting you to Open WebUI Community'));
-
-		// remove snapshot from feedbacks
-		const feedbacksToShare = feedbacks.map((f) => {
-			const { snapshot, user, ...rest } = f;
-			return rest;
-		});
-		console.log(feedbacksToShare);
-
-		const url = 'https://openwebui.com';
-		const tab = await window.open(`${url}/leaderboard`, '_blank');
-
-		// Define the event handler function
-		const messageHandler = (event) => {
-			if (event.origin !== url) return;
-			if (event.data === 'loaded') {
-				tab.postMessage(JSON.stringify(feedbacksToShare), '*');
-
-				// Remove the event listener after handling the message
-				window.removeEventListener('message', messageHandler);
-			}
-		};
-
-		window.addEventListener('message', messageHandler, false);
 	};
 
 	const exportHandler = async () => {
@@ -112,7 +90,7 @@
 
 		<div class="flex self-center w-[1px] h-6 mx-2.5 bg-gray-50 dark:bg-gray-850" />
 
-		<span class="text-lg font-medium text-gray-500 dark:text-gray-300">{feedbacks.length}</span>
+		<span class="text-lg font-medium text-gray-500 dark:text-gray-300">{count}</span>
 	</div>
 
 	{#if feedbacks.length > 0}
@@ -154,6 +132,10 @@
 						{$i18n.t('Models')}
 					</th>
 
+					<th scope="col" class="px-3 pr-1.5 cursor-pointer select-none">
+						{$i18n.t('Chat')}
+					</th>
+
 					<th scope="col" class="px-3 py-1.5 text-right cursor-pointer select-none w-fit">
 						{$i18n.t('Result')}
 					</th>
@@ -166,7 +148,7 @@
 				</tr>
 			</thead>
 			<tbody class="">
-				{#each paginatedFeedbacks as feedback (feedback.id)}
+				{#each feedbacks as feedback (feedback.id)}
 					<tr class="bg-white dark:bg-gray-900 dark:border-gray-850 text-xs">
 						<td class=" py-0.5 text-right font-semibold">
 							<div class="flex justify-center">
@@ -185,21 +167,21 @@
 						<td class=" py-1 pl-3 flex flex-col">
 							<div class="flex flex-col items-start gap-0.5 h-full">
 								<div class="flex flex-col h-full">
-									{#if feedback.data?.sibling_model_ids}
+									{#if feedback.data?.sibling_models}
 										<div class="font-semibold text-gray-600 dark:text-gray-400 flex-1">
-											{feedback.data?.model_id}
+											{feedback.data?.model}
 										</div>
 
-										<Tooltip content={feedback.data.sibling_model_ids.join(', ')}>
+										<Tooltip content={feedback.data.sibling_models.join(', ')}>
 											<div class=" text-[0.65rem] text-gray-600 dark:text-gray-400 line-clamp-1">
-												{#if feedback.data.sibling_model_ids.length > 2}
+												{#if feedback.data.sibling_models.length > 2}
 													<!-- {$i18n.t('and {{COUNT}} more')} -->
-													{feedback.data.sibling_model_ids.slice(0, 2).join(', ')}, {$i18n.t(
+													{feedback.data.sibling_models.slice(0, 2).join(', ')}, {$i18n.t(
 														'and {{COUNT}} more',
-														{ COUNT: feedback.data.sibling_model_ids.length - 2 }
+													{ COUNT: feedback.data.sibling_models.length - 2 }
 													)}
 												{:else}
-													{feedback.data.sibling_model_ids.join(', ')}
+													{feedback.data.sibling_models.join(', ')}
 												{/if}
 											</div>
 										</Tooltip>
@@ -207,12 +189,21 @@
 										<div
 											class=" text-sm font-medium text-gray-600 dark:text-gray-400 flex-1 py-1.5"
 										>
-											{feedback.data?.model_id}
+											{feedback.data?.model}
 										</div>
 									{/if}
 								</div>
 							</div>
 						</td>
+
+						<td class="px-3 py-1 font-medium text-sm text-gray-900 dark:text-white">
+							<a href="/s/{feedback.meta.chat_id}?showFeedback=true" target="_blank">
+								<div class="underline line-clamp-1 max-w-96">
+									{feedback.snapshot?.chat?.title}
+								</div>
+							</a>
+						</td>
+
 						<td class="px-3 py-1 text-right font-medium text-gray-900 dark:text-white w-max">
 							<div class=" flex justify-end">
 								{#if feedback.data.rating.toString() === '1'}
@@ -249,37 +240,6 @@
 	{/if}
 </div>
 
-{#if feedbacks.length > 0}
-	<div class=" flex flex-col justify-end w-full text-right gap-1">
-		<div class="line-clamp-1 text-gray-500 text-xs">
-			{$i18n.t('Help us create the best community leaderboard by sharing your feedback history!')}
-		</div>
-
-		<div class="flex space-x-1 ml-auto">
-			<Tooltip
-				content={$i18n.t(
-					'To protect your privacy, only ratings, model IDs, tags, and metadata are shared from your feedback—your chat logs remain private and are not included.'
-				)}
-			>
-				<button
-					class="flex text-xs items-center px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-200 transition"
-					on:click={async () => {
-						shareHandler();
-					}}
-				>
-					<div class=" self-center mr-2 font-medium line-clamp-1">
-						{$i18n.t('Share to Open WebUI Community')}
-					</div>
-
-					<div class=" self-center">
-						<CloudArrowUp className="size-3" strokeWidth="3" />
-					</div>
-				</button>
-			</Tooltip>
-		</div>
-	</div>
-{/if}
-
-{#if feedbacks.length > 10}
-	<Pagination bind:page count={feedbacks.length} perPage={10} />
+{#if count > perPage}
+	<Pagination bind:page count={count} perPage={perPage} />
 {/if}
