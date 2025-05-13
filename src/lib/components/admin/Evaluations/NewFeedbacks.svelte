@@ -24,7 +24,7 @@
 	import FeedbackMenu from './FeedbackMenu.svelte';
 	import EllipsisHorizontal from '$lib/components/icons/EllipsisHorizontal.svelte';
 
-	let feedbacks: Feedback[] = [];
+	let feedbacks = [];
 	let count = 0;
 
 	let perPage = 20;
@@ -222,7 +222,7 @@
 
 						<td class=" px-3 py-1 text-right font-semibold">
 							<FeedbackMenu
-								on:delete={(e) => {
+								on:delete={() => {
 									deleteFeedbackHandler(feedback.id);
 								}}
 							>
