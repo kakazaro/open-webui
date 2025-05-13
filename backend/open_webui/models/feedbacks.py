@@ -9,6 +9,7 @@ from open_webui.models.users import User, UserModel
 from open_webui.env import SRC_LOG_LEVELS
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import BigInteger, Column, Text, JSON, Boolean, func, case, cast
+from sqlalchemy.orm import defer
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["MODELS"])
@@ -206,6 +207,7 @@ class FeedbackTable:
             count = db.query(func.count(Feedback.id)).scalar()
             results = (
                 db.query(Feedback, User)
+                .options(defer(Feedback.snapshot))
                 .outerjoin(User, Feedback.user_id == User.id)
                 .order_by(Feedback.updated_at.desc())
                 .limit(limit)  # Limit the number of results by the specified limit
