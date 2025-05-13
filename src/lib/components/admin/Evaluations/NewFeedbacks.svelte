@@ -199,7 +199,7 @@
 						<td class="px-3 py-1 font-medium text-sm text-gray-900 dark:text-white">
 							<a href="/s/{feedback.meta.chat_id}?showFeedback=true" target="_blank">
 								<div class="underline line-clamp-1 max-w-96">
-									{feedback.snapshot?.chat?.title}
+									{feedback.snapshot?.chat?.title ?? feedback.chat_title}
 								</div>
 							</a>
 						</td>

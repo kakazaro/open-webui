@@ -102,6 +102,7 @@ class FeedbackUserResponse(BaseModel):
     data: Optional[dict] = None
     meta: Optional[dict] = None
     snapshot: Optional[dict] = None
+    chat_title: Optional[str] = None
     created_at: int
     updated_at: int
     chat_id: str
@@ -205,8 +206,10 @@ class FeedbackTable:
         offset = (page - 1) * limit
         with get_db() as db:
             count = db.query(func.count(Feedback.id)).scalar()
+            snapshot_chat_title = func.json_extract(Feedback.snapshot, '$.chat.title').label('chat_title')
+
             results = (
-                db.query(Feedback, User)
+                db.query(Feedback, User, snapshot_chat_title)
                 .options(defer(Feedback.snapshot))
                 .outerjoin(User, Feedback.user_id == User.id)
                 .order_by(Feedback.updated_at.desc())
@@ -219,10 +222,10 @@ class FeedbackTable:
                 'count': count,
                 'list': [
                     FeedbackUserResponse(
-                        **feedback.__dict__,
+                        **{**feedback.__dict__, 'chat_title': chat_title},
                         user=UserModel.model_validate(user) if user else None
                     )
-                    for feedback, user in results
+                    for feedback, user, chat_title in results
                 ]
             })
 
