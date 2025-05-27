@@ -93,12 +93,7 @@ async def get_feedbacks_evaluate(user=Depends(get_admin_user)):
 @router.get("/feedbacks/all/export", response_model=list[FeedbackModel])
 async def get_all_feedbacks(user=Depends(get_admin_user)):
     feedbacks = Feedbacks.get_all_feedbacks()
-    return [
-        FeedbackModel(
-            **feedback.model_dump(), user=Users.get_user_by_id(feedback.user_id)
-        )
-        for feedback in feedbacks
-    ]
+    return feedbacks
 
 
 @router.get("/feedbacks/user", response_model=list[FeedbackUserResponse])
