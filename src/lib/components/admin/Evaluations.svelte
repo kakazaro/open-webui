@@ -1,6 +1,8 @@
 <script>
 	import { getContext, tick, onMount } from 'svelte';
-	import { toast } from 'svelte-sonner';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+
 	import Leaderboard from './Evaluations/Leaderboard.svelte';
 	import Feedbacks from './Evaluations/Feedbacks.svelte';
 
@@ -11,7 +13,24 @@
 
 	const i18n = getContext('i18n');
 
-	let selectedTab = 'leaderboard';
+	let selectedTab;
+	$: {
+		const pathParts = $page.url.pathname.split('/');
+		const tabFromPath = pathParts[pathParts.length - 1];
+		selectedTab = ['leaderboard', 'feedbacks'].includes(tabFromPath) ? tabFromPath : 'leaderboard';
+	}
+
+	$: if (selectedTab) {
+		// scroll to selectedTab
+		scrollToTab(selectedTab);
+	}
+
+	const scrollToTab = (tabId) => {
+		const tabElement = document.getElementById(tabId);
+		if (tabElement) {
+			tabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+		}
+	};
 
 	let loaded = false;
 	let feedbacks = [];
@@ -30,6 +49,9 @@
 				}
 			});
 		}
+
+		// Scroll to the selected tab on mount
+		scrollToTab(selectedTab);
 	});
 </script>
 
@@ -40,12 +62,13 @@
 			class="tabs flex flex-row overflow-x-auto gap-2.5 max-w-full lg:gap-1 lg:flex-col lg:flex-none lg:w-40 dark:text-gray-200 text-sm font-medium text-left scrollbar-none"
 		>
 			<button
+				id="leaderboard"
 				class="px-0.5 py-1 min-w-fit rounded-lg lg:flex-none flex text-right transition {selectedTab ===
 				'leaderboard'
 					? ''
 					: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
 				on:click={() => {
-					selectedTab = 'leaderboard';
+					goto('/admin/evaluations/leaderboard');
 				}}
 			>
 				<div class=" self-center mr-2">
@@ -66,12 +89,13 @@
 			</button>
 
 			<button
+				id="feedbacks"
 				class="px-0.5 py-1 min-w-fit rounded-lg lg:flex-none flex text-right transition {selectedTab ===
 				'feedbacks'
 					? ''
 					: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
 				on:click={() => {
-					selectedTab = 'feedbacks';
+					goto('/admin/evaluations/feedbacks');
 				}}
 			>
 				<div class=" self-center mr-2">
