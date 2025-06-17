@@ -611,9 +611,9 @@
 				<ProfileImage
 					src={model?.info?.meta?.profile_image_url ??
 					($i18n.language === 'dg-DG' ? `/doge.png` : `${WEBUI_BASE_URL}/static/favicon.png`)}
-					className={'size-8'}
-				/>
-			</div>
+				className={'size-8 assistant-message-profile-image'}
+			/>
+		</div>
 
 		<div class="flex-auto w-0 pl-1 relative -translate-y-0.5">
 			<Name>
