@@ -826,6 +826,11 @@ async def generate_chat_completion(
         request_url = f"{url}/chat/completions"
         headers["Authorization"] = f"Bearer {key}"
 
+    # TODO: renesas logs payload
+    # print('start payload:')
+    # print(payload)
+    # print(payload["messages"])
+
     payload = json.dumps(payload)
 
     r = None
