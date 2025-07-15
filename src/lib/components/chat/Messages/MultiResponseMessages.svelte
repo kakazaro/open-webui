@@ -25,6 +25,7 @@
 	export let chatId;
 	export let history;
 	export let messageId;
+	export let selectedModels = [];
 
 	export let isLastMessage;
 	export let readOnly = false;
@@ -256,6 +257,7 @@
 									{chatId}
 									{history}
 									messageId={_messageId}
+									{selectedModels}
 									isLastMessage={true}
 									siblings={groupedMessageIds[modelIdx].messageIds}
 									gotoMessage={(message, messageIdx) => gotoMessage(modelIdx, messageIdx)}

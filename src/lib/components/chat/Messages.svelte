@@ -53,6 +53,8 @@
 	export let bottomPadding = false;
 	export let autoScroll;
 
+	export let onSelect = (e) => {};
+
 	let messagesCount = 20;
 	let messagesLoading = false;
 
@@ -399,25 +401,7 @@
 
 <div class={className}>
 	{#if Object.keys(history?.messages ?? {}).length == 0}
-		<ChatPlaceholder
-			modelIds={selectedModels}
-			{atSelectedModel}
-			submitPrompt={async (p) => {
-				let text = p;
-
-				if (p.includes('{{CLIPBOARD}}')) {
-					const clipboardText = await navigator.clipboard.readText().catch((err) => {
-						toast.error($i18n.t('Failed to read clipboard contents'));
-						return '{{CLIPBOARD}}';
-					});
-
-					text = p.replaceAll('{{CLIPBOARD}}', clipboardText);
-				}
-
-				prompt = text;
-				await tick();
-			}}
-		/>
+		<ChatPlaceholder modelIds={selectedModels} {atSelectedModel} {onSelect} />
 	{:else}
 		<div class="w-full pt-2">
 			{#key chatId}
@@ -442,6 +426,7 @@
 						<Message
 							{chatId}
 							bind:history
+							{selectedModels}
 							messageId={message.id}
 							idx={messageIdx}
 							{user}
