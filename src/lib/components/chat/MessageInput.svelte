@@ -1622,7 +1622,7 @@
 											onChoose={(cmd) => {
 												let clonePrompt = prompt;
 												clonePrompt = clonePrompt.replaceAll(/\/(\w+)*/g, '').trim();
-												prompt = `${cmd} ${clonePrompt || ''}`;
+												setText(`${cmd} ${clonePrompt || ''}`);
 											}}
 											/>
 

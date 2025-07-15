@@ -593,16 +593,14 @@
 			// Create a document fragment containing all parsed paragraphs
 			const fragment = Fragment.fromArray(nodes);
 			// Replace current selection with these paragraphs
-			tr.replaceSelectionWith(fragment, false /* don't select new */);
-			view.dispatch(tr);
+			editor.commands.setContent(fragment);
 		} else if (text === '') {
 			// Empty: replace with empty paragraph using tr
 			editor.commands.clearContent();
 		} else {
 			// Single line: create paragraph with text
 			const paragraph = schema.nodes.paragraph.create({}, schema.text(text));
-			tr.replaceSelectionWith(paragraph, false);
-			view.dispatch(tr);
+			editor.commands.setContent(paragraph);
 		}
 
 		selectNextTemplate(editor.view.state, editor.view.dispatch);
