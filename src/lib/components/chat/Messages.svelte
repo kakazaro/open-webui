@@ -38,6 +38,8 @@
 
 	let messages = [];
 
+	export let setInputText: Function = () => {};
+
 	export let sendPrompt: Function;
 	export let continueResponse: Function;
 	export let regenerateResponse: Function;
@@ -430,6 +432,7 @@
 							messageId={message.id}
 							idx={messageIdx}
 							{user}
+							{setInputText}
 							{gotoMessage}
 							{showPreviousMessage}
 							{showNextMessage}

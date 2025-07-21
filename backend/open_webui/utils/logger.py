@@ -7,6 +7,7 @@ import requests
 import queue
 import threading
 from loguru import logger
+from opentelemetry import trace
 
 
 from open_webui.env import (
@@ -16,6 +17,7 @@ from open_webui.env import (
     AUDIT_LOGS_FILE_PATH,
     GLOBAL_LOG_LEVEL,
     WEBUI_LOG_URL,
+    ENABLE_OTEL,
 )
 
 if TYPE_CHECKING:
@@ -92,9 +94,20 @@ class InterceptHandler(logging.Handler):
                 "message": record.getMessage()
             })
 
-        logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage()
-        )
+        logger.opt(depth=depth, exception=record.exc_info).bind(
+            **self._get_extras()
+        ).log(level, record.getMessage())
+
+    def _get_extras(self):
+        if not ENABLE_OTEL:
+            return {}
+
+        extras = {}
+        context = trace.get_current_span().get_span_context()
+        if context.is_valid:
+            extras["trace_id"] = trace.format_trace_id(context.trace_id)
+            extras["span_id"] = trace.format_span_id(context.span_id)
+        return extras
 
 
 def file_format(record: "Record"):

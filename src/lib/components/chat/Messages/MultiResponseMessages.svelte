@@ -30,6 +30,7 @@
 	export let isLastMessage;
 	export let readOnly = false;
 
+	export let setInputText: Function = () => {};
 	export let updateChat: Function;
 	export let editMessage: Function;
 	export let saveMessage: Function;
@@ -263,6 +264,7 @@
 									gotoMessage={(message, messageIdx) => gotoMessage(modelIdx, messageIdx)}
 									showPreviousMessage={() => showPreviousMessage(modelIdx)}
 									showNextMessage={() => showNextMessage(modelIdx)}
+									{setInputText}
 									{updateChat}
 									{editMessage}
 									{saveMessage}

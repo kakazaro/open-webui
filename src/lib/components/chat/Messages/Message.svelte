@@ -24,6 +24,7 @@
 
 	export let user;
 
+	export let setInputText: Function = () => {};
 	export let gotoMessage;
 	export let showPreviousMessage;
 	export let showNextMessage;
@@ -81,6 +82,7 @@
 					{selectedModels}
 					isLastMessage={messageId === history.currentId}
 					siblings={history.messages[history.messages[messageId].parentId]?.childrenIds ?? []}
+					{setInputText}
 					{gotoMessage}
 					{showPreviousMessage}
 					{showNextMessage}
@@ -104,6 +106,7 @@
 					{messageId}
 					{selectedModels}
 					isLastMessage={messageId === history?.currentId}
+					{setInputText}
 					{updateChat}
 					{editMessage}
 					{saveMessage}
