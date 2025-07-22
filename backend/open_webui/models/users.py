@@ -79,6 +79,9 @@ class UserInfoResponse(BaseModel):
     name: str
     email: str
     role: str
+    last_active_at: int  # timestamp in epoch
+    updated_at: int  # timestamp in epoch
+    created_at: int  # timestamp in epoch
 
 
 class UserInfoListResponse(BaseModel):
