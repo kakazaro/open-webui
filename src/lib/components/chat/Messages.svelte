@@ -40,7 +40,7 @@
 
 	export let setInputText: Function = () => {};
 
-	export let sendPrompt: Function;
+	export let sendMessage: Function;
 	export let continueResponse: Function;
 	export let regenerateResponse: Function;
 	export let mergeResponses: Function;
@@ -52,6 +52,7 @@
 
 	export let readOnly = false;
 
+	export let topPadding = false;
 	export let bottomPadding = false;
 	export let autoScroll;
 
@@ -296,7 +297,7 @@
 				history.currentId = userMessageId;
 
 				await tick();
-				await sendPrompt(history, userPrompt, userMessageId);
+				await sendMessage(history, userMessageId);
 			} else {
 				// Edit user message
 				history.messages[messageId].content = content;
@@ -449,6 +450,7 @@
 							{addMessages}
 							{triggerScroll}
 							{readOnly}
+							{topPadding}
 							feedback={feedbacks.find(f => f.meta.message_id === message.id)}
 							feedbacks={feedbacks}
 						/>
