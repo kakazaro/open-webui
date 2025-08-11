@@ -1873,7 +1873,6 @@
 													</button>
 												</Tooltip>
 											</div>
-											{/if}
 										{:else if prompt === '' && files.length === 0 && ($_user?.role === 'admin' || ($_user?.permissions?.chat?.call ?? true))}
 											<div class=" flex items-center">
 												<!-- {$i18n.t('Call')} -->
