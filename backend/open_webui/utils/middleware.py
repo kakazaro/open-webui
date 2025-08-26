@@ -1065,7 +1065,7 @@ async def process_chat_payload(request, form_data, user, metadata, model):
         if prompt is None:
             raise Exception("No user message found")
 
-        if context_string != "":
+        # if context_string != "":
             # Workaround for Ollama 2.0+ system prompt issue
             # TODO: replace with add_or_update_system_message
             # TODO: renesas improve

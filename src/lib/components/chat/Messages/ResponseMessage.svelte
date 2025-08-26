@@ -1622,6 +1622,7 @@
 			</div>
 		</div>
 	{/if}
+	</div>
 {/key}
 
 <style>
