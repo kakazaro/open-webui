@@ -57,6 +57,7 @@ from open_webui.utils.webhook import post_webhook
 from open_webui.models.users import UserModel
 from open_webui.models.functions import Functions
 from open_webui.models.models import Models
+from open_webui.models.files import Files
 
 from open_webui.retrieval.utils import get_sources_from_items
 
@@ -767,6 +768,13 @@ def replace_command_in_payload(payload):
                 command_pattern = f"/{command['command']}"
                 if command_pattern in message["content"]:
                     message["content"] = re.sub(command_pattern, command["replace"], message["content"])
+        elif isinstance(message.get("content"), list):
+            for sub in message['content']:
+                if 'text' in sub:
+                    for command in CODING_COMMANDS:
+                        command_pattern = f"/{command['command']}"
+                        if command_pattern in sub["text"]:
+                            sub["text"] = re.sub(command_pattern, command["replace"], sub["text"])
 
 
 def attach_file_in_payload(payload, metadata):
@@ -775,21 +783,30 @@ def attach_file_in_payload(payload, metadata):
         for i, message in enumerate(payload['messages']):
             if i < len(message_attached_files):
                 attached_files = message_attached_files[i]
-                if attached_files:
+                if attached_files and len(attached_files) > 0:
                     attached_content = ""
                     image_count = 0
                     for file in attached_files:
+                        print(json.dumps(file))
                         if file['type'] == 'image':
                             image_count += 1
-                        elif file['content']:
-                            attached_content += 'User uploaded a file named "'+ file['name'] +'" with the following content:\n"""'+ file['content'] +'"""\n\n'
+                        elif "content" in file:
+                            attached_content += 'User uploaded a file named "' + file[
+                                'name'] + '" with the following content:\n"""' + file['content'] + '"""\n\n'
+                        elif "id" in file:
+                            get_file = Files.get_file_by_id(file["id"])
+                            content = ""
+                            if get_file:
+                                content = get_file.data.get("content", "")
+                            if content and content != "":
+                                attached_content += 'User uploaded a file named "' + file[
+                                    'name'] + '" with the following content:\n"""' + content + '"""\n\n'
                     if image_count > 0:
                         attached_content += 'User uploaded ' + str(image_count) + ' image(s) (see below)\n\n'
                     if attached_content:
                         if isinstance(message['content'], str):
                             message['content'] = attached_content + 'User\'s query: "' + message['content'] + '"'
                         elif isinstance(message['content'], list):
-                            text = ""
                             for sub in message['content']:
                                 if 'text' in sub:
                                     sub['text'] = attached_content + 'User\'s query: "' + sub['text'] + '"'
@@ -1031,62 +1048,63 @@ async def process_chat_payload(request, form_data, user, metadata, model):
     except Exception as e:
         log.exception(e)
 
+    # TODO: renesas improve
     # If context is not empty, insert it into the messages
-    if len(sources) > 0:
-        context_string = ""
-        citation_idx_map = {}
-
-        for source in sources:
-            is_tool_result = source.get("tool_result", False)
-
-            if "document" in source and not is_tool_result:
-                for document_text, document_metadata in zip(
-                    source["document"], source["metadata"]
-                ):
-                    source_name = source.get("source", {}).get("name", None)
-                    source_id = (
-                        document_metadata.get("source", None)
-                        or source.get("source", {}).get("id", None)
-                        or "N/A"
-                    )
-
-                    if source_id not in citation_idx_map:
-                        citation_idx_map[source_id] = len(citation_idx_map) + 1
-
-                    context_string += (
-                        f'<source id="{citation_idx_map[source_id]}"'
-                        + (f' name="{source_name}"' if source_name else "")
-                        + f">{document_text}</source>\n"
-                    )
-
-        context_string = context_string.strip()
+    # if len(sources) > 0:
+    #     context_string = ""
+    #     citation_idx_map = {}
+    #
+    #     for source in sources:
+    #         is_tool_result = source.get("tool_result", False)
+    #
+    #         if "document" in source and not is_tool_result:
+    #             for document_text, document_metadata in zip(
+    #                 source["document"], source["metadata"]
+    #             ):
+    #                 source_name = source.get("source", {}).get("name", None)
+    #                 source_id = (
+    #                     document_metadata.get("source", None)
+    #                     or source.get("source", {}).get("id", None)
+    #                     or "N/A"
+    #                 )
+    #
+    #                 if source_id not in citation_idx_map:
+    #                     citation_idx_map[source_id] = len(citation_idx_map) + 1
+    #
+    #                 context_string += (
+    #                     f'<source id="{citation_idx_map[source_id]}"'
+    #                     + (f' name="{source_name}"' if source_name else "")
+    #                     + f">{document_text}</source>\n"
+    #                 )
+    #
+    #     context_string = context_string.strip()
 
         prompt = get_last_user_message(form_data["messages"])
         if prompt is None:
             raise Exception("No user message found")
 
         # if context_string != "":
-            # Workaround for Ollama 2.0+ system prompt issue
-            # TODO: replace with add_or_update_system_message
-            # TODO: renesas improve
-            #             if model.get("owned_by") == "ollama":
-            #                 form_data["messages"] = prepend_to_first_user_message_content(
-            #                     rag_template(
-            #                         request.app.state.config.RAG_TEMPLATE,
-            #                         context_string,
-            #                         prompt,
-            #                     ),
-            #                     form_data["messages"],
-            #                 )
-            #             else:
-            #                 form_data["messages"] = add_or_update_system_message(
-            #                     rag_template(
-            #                         request.app.state.config.RAG_TEMPLATE,
-            #                         context_string,
-            #                         prompt,
-            #                     ),
-            #                     form_data["messages"],
-            #                 )
+        #     # Workaround for Ollama 2.0+ system prompt issue
+        #     # TODO: replace with add_or_update_system_message
+        #     # TODO: renesas improve
+        #     if model.get("owned_by") == "ollama":
+        #         form_data["messages"] = prepend_to_first_user_message_content(
+        #             rag_template(
+        #                 request.app.state.config.RAG_TEMPLATE,
+        #                 context_string,
+        #                 prompt,
+        #             ),
+        #             form_data["messages"],
+        #         )
+        #     else:
+        #         form_data["messages"] = add_or_update_system_message(
+        #             rag_template(
+        #                 request.app.state.config.RAG_TEMPLATE,
+        #                 context_string,
+        #                 prompt,
+        #             ),
+        #             form_data["messages"],
+        #         )
 
     # If there are citations, add them to the data_items
     sources = [
@@ -1114,6 +1132,7 @@ async def process_chat_payload(request, form_data, user, metadata, model):
 
     # print('before form_data')
     # print(form_data["messages"])
+    # print(json.dumps(form_data))
     attach_file_in_payload(form_data, metadata)
     replace_command_in_payload(form_data)
     # print('after form_data')
