@@ -1555,6 +1555,58 @@ async def chat_completion(
         return await process_chat(request, form_data, user, metadata, model)
 
 
+@app.post("/api/completions")
+async def generate_chat_completion(
+        request: Request,
+        form_data: dict,
+        user=Depends(get_verified_user),
+):
+    form_data.update({
+        "messages": [
+            {"role": "user", "content": form_data.get("prompt", "")}
+        ]
+    })
+    form_data.pop("prompt")
+
+    if form_data.get("stream", False):
+        response = await chat_completion(request, form_data, user)
+        if isinstance(response, StreamingResponse):
+            async def stream_legacy_completions():
+                async for chunk in response.body_iterator:
+                    data = chunk.decode("utf-8") if isinstance(chunk, bytes) else chunk
+                    if data.startswith("data: {"):
+                        r = json.loads(data.removeprefix("data: "))
+                        if "choices" in r and len(r["choices"]) > 0 and "delta" in r["choices"][0]:
+                            r["choices"] = [
+                                {
+                                    **r["choices"][0],
+                                    "text": r["choices"][0]["delta"]["content"]
+                                }
+                            ]
+                            r["object"] = "text_completion"
+                            r["choices"][0].pop("delta")
+                        yield f"data: {json.dumps(r)}\n\n"
+                    pass
+                yield "data: [DONE]\n\n"
+
+            return StreamingResponse(stream_legacy_completions(), headers=response.headers,
+                                     media_type=response.media_type)
+    else:
+        response = await chat_completion(request, form_data, user)
+        if isinstance(response, dict) or isinstance(response, JSONResponse):
+            response["choices"] = [
+                {
+                    **response["choices"][0],
+                    "text": response["choices"][0]["message"]["content"],
+                }
+            ]
+            response["object"] = "text_completion"
+            response["choices"][0].pop("message")
+            return response
+
+    raise HTTPException(status_code=500, detail="Not implemented")
+
+
 # Alias for chat_completion (Legacy)
 generate_chat_completions = chat_completion
 generate_chat_completion = chat_completion
