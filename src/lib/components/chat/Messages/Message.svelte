@@ -44,13 +44,14 @@
 	export let addMessages;
 	export let triggerScroll;
 	export let readOnly = false;
+	export let editCodeBlock = true;
 	export let topPadding = false;
 
 	export let feedback: Feedback | undefined = undefined;
 	export let feedbacks: Feedback[] = [];
 </script>
 
-<li
+<div
 	class="flex flex-col justify-between px-5 mb-3 w-full {($settings?.widescreenMode ?? null)
 		? 'max-w-full'
 		: 'max-w-5xl'} mx-auto rounded-lg group"
@@ -74,6 +75,7 @@
 				{editMessage}
 				{deleteMessage}
 				{readOnly}
+				{editCodeBlock}
 				{topPadding}
 			/>
 		{:else if (history.messages[history.messages[messageId].parentId]?.models?.length ?? 1) === 1}
@@ -99,6 +101,7 @@
 				{regenerateResponse}
 				{addMessages}
 				{readOnly}
+				{editCodeBlock}
 				{topPadding}
 				feedback={feedbacks.find(f => f.meta.message_id === messageId)}
 			/>
@@ -123,9 +126,10 @@
 				{triggerScroll}
 				{addMessages}
 				{readOnly}
+				{editCodeBlock}
 				{topPadding}
 				{feedbacks}
 			/>
 		{/if}
 	{/if}
-</li>
+</div>
