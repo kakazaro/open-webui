@@ -807,7 +807,7 @@ def attach_file_in_payload(payload, metadata):
                     attached_content = ""
                     image_count = 0
                     for file in attached_files:
-                        print(json.dumps(file))
+                        # print(json.dumps(file))
                         if file['type'] == 'image':
                             image_count += 1
                         elif "content" in file:
@@ -1389,8 +1389,9 @@ async def process_chat_response(
                 else:
                     response_data = response
 
-                if "error" in response_data:
-                    error = response_data["error"].get("detail", response_data["error"])
+                # TODO: renesas improve
+                if "error" in response_data or "message" in response_data or "error_code" in response_data:
+                    error = response_data["message"] if "message" in response_data else response_data["error_code"] if "error_code" in response_data else response_data["error"].get("detail", response_data["error"])
                     Chats.upsert_message_to_chat_by_id_and_message_id(
                         metadata["chat_id"],
                         metadata["message_id"],
