@@ -1207,12 +1207,15 @@ async def process_chat_payload(request, form_data, user, metadata, model):
             }
         )
 
+    # TODO: renesas improve
     # print('before form_data')
     # print(form_data["messages"])
     # print(json.dumps(form_data))
+    # print(json.dumps(metadata))
     attach_file_in_payload(form_data, metadata)
     replace_command_in_payload(form_data)
     # print('after form_data')
+    # print(form_data["messages"])
     # print(json.dumps(form_data))
     # print(json.dumps(metadata))
 

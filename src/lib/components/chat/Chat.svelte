@@ -1801,6 +1801,7 @@
 				filter_ids: selectedFilterIds.length > 0 ? selectedFilterIds : undefined,
 				tool_ids: selectedToolIds.length > 0 ? selectedToolIds : undefined,
 				tool_servers: $toolServers,
+				message_attached_files: messageAttachedFiles,
 				features: getFeatures(),
 				variables: {
 					...getPromptVariables($user?.name, $settings?.userLocation ? userLocation : undefined)
