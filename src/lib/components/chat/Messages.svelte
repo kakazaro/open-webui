@@ -460,7 +460,7 @@
 						{/each}
 					</ul>
 				</section>
-				<div class="pb-12" />
+				<div class="pb-18" />
 				{#if bottomPadding}
 					<div class="  pb-6" />
 				{/if}
