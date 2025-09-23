@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
 	import { flyAndScale } from '$lib/utils/transitions';
+	import { prompts } from '$lib/stores';
 
 	import { CODING_COMMANDS } from '$lib/constants';
 
@@ -8,7 +9,7 @@
 	export let onChoose: Function;
 
 	// TODO: renesas
-	let commands = CODING_COMMANDS;
+	let commands = [...($prompts ?? []), ...CODING_COMMANDS];
 </script>
 
 <DropdownMenu.Root
@@ -44,7 +45,7 @@
 			<DropdownMenu.Item
 				class="flex gap-2 items-center px-3 py-2 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
 				on:click={() => {
-				onChoose(command.command)
+				onChoose(command.content || command.command)
 			}}
 			>
 				<div class="line-clamp-1">{command.title}</div>

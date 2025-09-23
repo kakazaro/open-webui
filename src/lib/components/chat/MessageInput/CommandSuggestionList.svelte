@@ -94,7 +94,7 @@
 						const { type, data } = e;
 
 						if (type === 'prompt') {
-							insertTextHandler(data.content);
+							insertTextHandler(data.content || data.command);
 						}
 					}}
 				/>

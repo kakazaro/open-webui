@@ -13,7 +13,7 @@
 	let selectedPromptIdx = 0;
 	export let filteredItems = [];
 
-	$: filteredItems = (prompts.length ? prompts : CODING_COMMANDS)
+	$: filteredItems = [...prompts, ...CODING_COMMANDS]
 		.filter((p) => p.command.toLowerCase().includes(query.toLowerCase()));
 		// .sort((a, b) => a.title.localeCompare(b.title));
 

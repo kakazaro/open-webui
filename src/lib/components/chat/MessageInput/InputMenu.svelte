@@ -166,7 +166,8 @@
 						</DropdownMenu.Item>
 					</Tooltip>
 
-					{#if $config?.features?.enable_notes ?? false}
+					<!-- TODO: Renesas disable -->
+					{#if ($config?.features?.enable_notes ?? false) && false}
 						<Tooltip
 							content={fileUploadCapableModels.length !== selectedModels.length
 								? $i18n.t('Model(s) do not support file upload')
@@ -198,6 +199,8 @@
 						</Tooltip>
 					{/if}
 
+					<!-- TODO: Renesas disable -->
+					{#if false}
 					<Tooltip
 						content={fileUploadCapableModels.length !== selectedModels.length
 							? $i18n.t('Model(s) do not support file upload')
@@ -227,8 +230,10 @@
 							</div>
 						</button>
 					</Tooltip>
+					{/if}
 
-					{#if ($chats ?? []).length > 0}
+					<!-- TODO: Renesas disable -->
+					{#if ($chats ?? []).length > 0 && false}
 						<Tooltip
 							content={fileUploadCapableModels.length !== selectedModels.length
 								? $i18n.t('Model(s) do not support file upload')

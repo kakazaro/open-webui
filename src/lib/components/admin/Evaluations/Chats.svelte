@@ -11,7 +11,7 @@
 
 	const i18n = getContext('i18n');
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
-	import ArrowDownTray from '$lib/components/icons/ArrowDownTray.svelte';
+	import Download from '$lib/components/icons/Download.svelte';
 	import Pagination from '$lib/components/common/Pagination.svelte';
 	import { getAllChatsAdmin, getAllUserChats } from '$lib/apis/chats';
 
@@ -61,7 +61,7 @@
 					class="p-2 rounded-xl hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-850 transition font-medium text-sm flex items-center space-x-1"
 					on:click={exportAllUserChats}
 				>
-					<ArrowDownTray class="size-3" />
+					<Download class="size-3" />
 				</button>
 			</Tooltip>
 		</div>
