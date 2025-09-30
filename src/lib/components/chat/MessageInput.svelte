@@ -1450,6 +1450,7 @@
 											</div>
 										</InputMenu>
 
+										<!-- TODO: Renesas disable -->
 										<CommandMenu
 											onClose={async () => {
 												await tick();
@@ -1464,6 +1465,8 @@
 											}}
 											/>
 
+										<!-- TODO: Renesas disable -->
+										{#if false}
 										<div
 											class="flex self-center w-[1px] h-4 mx-1 bg-gray-200/50 dark:bg-gray-800/50"
 										/>
@@ -1500,6 +1503,7 @@
 													<Component className="size-4.5" strokeWidth="1.5" />
 												</div>
 											</IntegrationsMenu>
+										{/if}
 										{/if}
 
 										{#if selectedModelIds.length === 1 && $models.find((m) => m.id === selectedModelIds[0])?.has_user_valves}

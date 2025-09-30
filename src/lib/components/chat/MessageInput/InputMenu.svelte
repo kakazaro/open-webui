@@ -190,6 +190,8 @@
 						</DropdownMenu.Item>
 					</Tooltip>
 
+					<!-- TODO: Renesas disable -->
+					{#if false}
 					<Tooltip
 						content={fileUploadCapableModels.length !== selectedModels.length
 							? $i18n.t('Model(s) do not support file upload')
@@ -210,6 +212,7 @@
 							<div class="line-clamp-1">{$i18n.t('Attach Webpage')}</div>
 						</DropdownMenu.Item>
 					</Tooltip>
+					{/if}
 
 					<!-- TODO: Renesas disable -->
 					{#if ($config?.features?.enable_notes ?? false) && false}
