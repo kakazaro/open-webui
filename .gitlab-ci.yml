@@ -49,4 +49,4 @@ clean storage:
     - linux
     - build
   script:
-    - docker system prune -f --volumes
+    - docker system prune -af --volumes
