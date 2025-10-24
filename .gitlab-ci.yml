@@ -1,11 +1,10 @@
 stages:
   - build
-  - push_image
   - deploy
   - clean
 
 variables:
-  IMAGE_NAME: kakazaro/open-webui
+  IMAGE_NAME: r-open-webui
   IMAGE_TAG: latest
 
 build_image:
@@ -15,16 +14,12 @@ build_image:
     - build
   script:
     - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
-
-push_image:
-  stage: push_image
-  tags:
-    - linux
-    - build
-  script:
-    - docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-    - docker push ${IMAGE_NAME}:${IMAGE_TAG}
+    - docker save -o image.tar ${IMAGE_NAME}:${IMAGE_TAG}
     - docker rmi ${IMAGE_NAME}:${IMAGE_TAG}
+  artifacts:
+    paths:
+      - image.tar
+    expire_in: 7 days
 
 deploy_main:
   stage: deploy
@@ -32,12 +27,16 @@ deploy_main:
     - linux
     - deploy
     - web
+  needs:
+    - build_image
   script:
     - cp $SSL_CRT ./ssl/nginx.crt
     - cp $SSL_KEY ./ssl/nginx.key
     - export MICROSOFT_CLIENT_ID=$MICROSOFT_CLIENT_ID
     - export MICROSOFT_CLIENT_SECRET=$MICROSOFT_CLIENT_SECRET
     - export MICROSOFT_CLIENT_TENANT_ID=$MICROSOFT_CLIENT_TENANT_ID
+    - docker compose down
+    - docker load -i image.tar
     - docker compose -f docker-compose.renesas.yaml up -d
     - docker image prune -f
   only:

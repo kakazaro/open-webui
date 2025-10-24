@@ -1,7 +1,6 @@
 services:
   open-webui:
-    image: kakazaro/open-webui:latest
-    pull_policy: always
+    image: r-open-webui:latest
     container_name: open-webui
     volumes:
       - open-webui:/app/backend/data
