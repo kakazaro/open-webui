@@ -18,7 +18,7 @@ deploy_main:
     - export MICROSOFT_CLIENT_SECRET=$MICROSOFT_CLIENT_SECRET
     - export MICROSOFT_CLIENT_TENANT_ID=$MICROSOFT_CLIENT_TENANT_ID
     - docker system prune -f
-    - docker build --cpu-quota=50000 --cpu-period=100000 -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
+    - docker build --cpus=1 --memory=4g -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
     - docker-compose -f docker-compose.renesas.yaml up --force-recreate -d
     - docker image prune -f
   only:
