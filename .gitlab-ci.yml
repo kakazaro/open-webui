@@ -1,26 +1,9 @@
 stages:
-  - build
   - deploy
-  - clean
 
 variables:
   IMAGE_NAME: r-open-webui
   IMAGE_TAG: latest
-
-build_image:
-  stage: build
-  tags:
-    - linux
-    - build
-  script:
-    - docker system prune -af --volumes
-    - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
-    - docker save -o image.tar ${IMAGE_NAME}:${IMAGE_TAG}
-    - docker rmi ${IMAGE_NAME}:${IMAGE_TAG}
-  artifacts:
-    paths:
-      - image.tar
-    expire_in: 7 days
 
 deploy_main:
   stage: deploy
@@ -28,25 +11,15 @@ deploy_main:
     - linux
     - deploy
     - web
-  needs:
-    - build_image
   script:
     - cp $SSL_CRT ./ssl/nginx.crt
     - cp $SSL_KEY ./ssl/nginx.key
     - export MICROSOFT_CLIENT_ID=$MICROSOFT_CLIENT_ID
     - export MICROSOFT_CLIENT_SECRET=$MICROSOFT_CLIENT_SECRET
     - export MICROSOFT_CLIENT_TENANT_ID=$MICROSOFT_CLIENT_TENANT_ID
-    - docker compose down
-    - docker load -i image.tar
-    - docker compose -f docker-compose.renesas.yaml up -d
+    - docker system prune -f
+    - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
+    - docker-compose -f docker-compose.renesas.yaml up --force-recreate -d
     - docker image prune -f
   only:
     - main
-
-clean storage:
-  stage: clean
-  tags:
-    - linux
-    - build
-  script:
-    - docker system prune -af --volumes
