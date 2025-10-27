@@ -37,6 +37,6 @@ deploy_main:
     - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
     - docker load -i image.tar
     - docker compose -f docker-compose.renesas.yaml up --force-recreate -d
-    # - docker system prune -af
+    - docker system prune -af
   only:
     - main
