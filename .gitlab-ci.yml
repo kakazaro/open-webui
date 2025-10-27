@@ -12,13 +12,13 @@ build_image:
     - windows
     - shell
   script:
-    - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
+    - docker build -platform linux/amd64 -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
     - docker save -o image.tar ${IMAGE_NAME}:${IMAGE_TAG}
     - docker rmi ${IMAGE_NAME}:${IMAGE_TAG}
   artifacts:
     paths:
       - image.tar
-    expire_in: 7 days
+    expire_in: 1 hours
   only:
     - main
 
@@ -37,6 +37,6 @@ deploy_main:
     - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
     - docker load -i image.tar
     - docker compose -f docker-compose.renesas.yaml up --force-recreate -d
-    # - docker image prune -f
+    # - docker system prune -af
   only:
     - main
