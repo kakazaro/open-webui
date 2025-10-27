@@ -12,9 +12,8 @@ services:
       - 'WEBUI_NAME=Generative AI'
       - 'WEBUI_URL=http://10.210.106.4'
       - 'WEBUI_LOG_URL=http://10.210.106.4:7359'
-      - 'MICROSOFT_CLIENT_ID=${MICROSOFT_CLIENT_ID}'
-      - 'MICROSOFT_CLIENT_SECRET=${MICROSOFT_CLIENT_SECRET}'
-      - 'MICROSOFT_CLIENT_TENANT_ID=${MICROSOFT_CLIENT_TENANT_ID}'
+      - 'DATABRICKS_CLIENT_ID=${DATABRICKS_CLIENT_ID}'
+      - 'DATABRICKS_CLIENT_SECRET=${DATABRICKS_CLIENT_SECRET}'
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped

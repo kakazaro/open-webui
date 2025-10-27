@@ -819,3 +819,5 @@ EXTERNAL_PWA_MANIFEST_URL = os.environ.get("EXTERNAL_PWA_MANIFEST_URL")
 ####################################
 
 WEBUI_LOG_URL = os.environ.get("WEBUI_LOG_URL", "")
+DATABRICKS_CLIENT_ID = os.environ.get("DATABRICKS_CLIENT_ID", "")
+DATABRICKS_CLIENT_SECRET = os.environ.get("DATABRICKS_CLIENT_SECRET", "")

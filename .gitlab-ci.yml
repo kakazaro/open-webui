@@ -1,9 +1,26 @@
 stages:
+  - build
   - deploy
 
 variables:
   IMAGE_NAME: r-open-webui
   IMAGE_TAG: latest
+
+build_image:
+  stage: build
+  tags:
+    - windows
+    - shell
+  script:
+    - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
+    - docker save -o image.tar ${IMAGE_NAME}:${IMAGE_TAG}
+    - docker rmi ${IMAGE_NAME}:${IMAGE_TAG}
+  artifacts:
+    paths:
+      - image.tar
+    expire_in: 7 days
+  only:
+    - main
 
 deploy_main:
   stage: deploy
@@ -11,16 +28,15 @@ deploy_main:
     - linux
     - deploy
     - web
+  needs:
+    - build_image
   script:
     - cp $SSL_CRT ./ssl/nginx.crt
     - cp $SSL_KEY ./ssl/nginx.key
-    - export MICROSOFT_CLIENT_ID=$MICROSOFT_CLIENT_ID
-    - export MICROSOFT_CLIENT_SECRET=$MICROSOFT_CLIENT_SECRET
-    - export MICROSOFT_CLIENT_TENANT_ID=$MICROSOFT_CLIENT_TENANT_ID
-    - docker system prune -f
-    - docker buildx use my_limited_builder # docker buildx create --name=my_limited_builder --driver=docker-container --driver-opt=memory=4G,cpu-shares=16,cpu-quota=50000,cpuset-cpus=0,default-load=true --bootstrap --use
-    - docker buildx build -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
+    - export DATABRICKS_CLIENT_ID=$DATABRICKS_CLIENT_ID
+    - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
+    - docker load -i image.tar
     - docker-compose -f docker-compose.renesas.yaml up --force-recreate -d
-    - docker image prune -f
+    # - docker image prune -f
   only:
     - main

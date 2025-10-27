@@ -38,6 +38,7 @@ from open_webui.models.users import UserModel
 from open_webui.constants import ERROR_MESSAGES
 from open_webui.env import SRC_LOG_LEVELS
 
+from open_webui.utils.access_token_manager import AccessTokenManager
 
 from open_webui.utils.payload import (
     apply_model_params_to_body_openai,
@@ -121,6 +122,9 @@ def openai_reasoning_model_handler(payload):
     return payload
 
 
+# TODO: renesas
+token_manager = AccessTokenManager()
+
 async def get_headers_and_cookies(
     request: Request,
     url,
@@ -164,7 +168,11 @@ async def get_headers_and_cookies(
         # Default to bearer if not specified
         token = f"{key}"
     elif auth_type == "none":
-        token = None
+        # TODO: renesas
+        if "databricks" in url:
+            token = token_manager.get_access_token(url)
+        else:
+            token = None
     elif auth_type == "session":
         cookies = request.cookies
         token = request.state.token.credentials
