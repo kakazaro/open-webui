@@ -23,6 +23,7 @@
 
 	import Bug from '../icons/Bug.svelte';
 	import BookManual from '../icons/BookManual.svelte';
+	import ApiIcon from '../icons/Api.svelte';
 	import ShareChatModal from '../chat/ShareChatModal.svelte';
 	import ModelSelector from '../chat/ModelSelector.svelte';
 	import Tooltip from '../common/Tooltip.svelte';
@@ -182,6 +183,21 @@
 						</Tooltip>
 					{/if}
 
+					{#if $feedbackReportSettings.apiUrl}
+						<Tooltip content={$i18n.t('API Reference')}>
+							<button
+								class=" flex cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
+								on:click={() => {
+								window.open($feedbackReportSettings.apiUrl, '_blank');
+							}}
+								aria-label="API Reference"
+							>
+								<div class=" m-auto self-center">
+									<ApiIcon className=" size-5" strokeWidth="0.5" />
+								</div>
+							</button>
+						</Tooltip>
+					{/if}
 					{#if $feedbackReportSettings.manualUrl}
 						<Tooltip content={$i18n.t('User Manual')}>
 							<button

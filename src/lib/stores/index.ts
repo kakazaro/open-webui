@@ -70,7 +70,10 @@ export const settings: Writable<Settings> = writable({});
 
 export const feedbackReportSettings: Writable<FeedbackReportSettings> = writable({
 	url: 'http://10.210.106.4:7357/ticket/create',
-	manualUrl: 'https://renesasgroup.sharepoint.com/:p:/s/ABU-SWBD/SWBD/EfjgQ6fzTlNHpbQcVSE1S0YBtOX6BK3NqWF1sp3OarIWww?e=Q2D9ak',
+	manualUrl:
+		'https://renesasgroup.sharepoint.com/:p:/s/ABU-SWBD/SWBD/EfjgQ6fzTlNHpbQcVSE1S0YBtOX6BK3NqWF1sp3OarIWww?e=Q2D9ak',
+	apiUrl:
+		'https://renesasgroup.sharepoint.com/:p:/s/GenerativeAIInternalActivity/EfTDj1JSb49BiJo_DpgZVVUB8PkmmlQI-pbNbF92U9ncJg?e=AMdPG1'
 });
 
 export const audioQueue = writable(null);
@@ -216,6 +219,7 @@ type Settings = {
 type FeedbackReportSettings = {
 	url: string;
 	manualUrl: string;
+	apiUrl: string;
 };
 
 type ModelOptions = {
