@@ -939,8 +939,6 @@ async def generate_chat_completion(
     # print('start payload:')
     # print(payload)
     # print(payload["messages"])
-    # delete unexpected field from Continue Plugin
-    del payload["stream_options"]
 
     payload = json.dumps(payload)
 
