@@ -2,7 +2,7 @@
 	import { toast } from 'svelte-sonner';
 	import dayjs from 'dayjs';
 
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onDestroy } from 'svelte';
 	import { onMount, tick, getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 	import type { i18n as i18nType, t } from 'i18next';
@@ -36,7 +36,7 @@
 		removeDetails,
 		removeAllDetails
 	} from '$lib/utils';
-	import { WEBUI_BASE_URL } from '$lib/constants';
+	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL } from '$lib/constants';
 
 	import Name from './Name.svelte';
 	import ProfileImage from './ProfileImage.svelte';
@@ -156,6 +156,8 @@
 	export let feedback: Feedback | undefined = undefined;
 
 	let citationsElement: HTMLDivElement;
+
+	let contentContainerElement: HTMLDivElement;
 	let buttonsContainerElement: HTMLDivElement;
 	let showDeleteConfirm = false;
 
@@ -281,7 +283,7 @@
 				}
 
 				for (const [idx, sentence] of messageContentParts.entries()) {
-					const blob = await $TTSWorker
+					const url = await $TTSWorker
 						.generate({
 							text: sentence,
 							voice: $settings?.audio?.tts?.voice ?? $config?.audio?.tts?.voice
@@ -294,8 +296,7 @@
 							loadingSpeech = false;
 						});
 
-					if (blob) {
-						const url = URL.createObjectURL(blob);
+					if (url && speaking) {
 						$audioQueue.enqueue(url);
 						loadingSpeech = false;
 					}
@@ -316,7 +317,7 @@
 						loadingSpeech = false;
 					});
 
-					if (res) {
+					if (res && speaking) {
 						const blob = await res.blob();
 						const url = URL.createObjectURL(blob);
 
@@ -545,24 +546,70 @@
 		})();
 	}
 
+	const buttonsWheelHandler = (event: WheelEvent) => {
+		if (buttonsContainerElement) {
+			if (buttonsContainerElement.scrollWidth <= buttonsContainerElement.clientWidth) {
+				// If the container is not scrollable, horizontal scroll
+				return;
+			} else {
+				event.preventDefault();
+
+				if (event.deltaY !== 0) {
+					// Adjust horizontal scroll position based on vertical scroll
+					buttonsContainerElement.scrollLeft += event.deltaY;
+				}
+			}
+		}
+	};
+
+	const contentCopyHandler = (e) => {
+		if (contentContainerElement) {
+			e.preventDefault();
+			// Get the selected HTML
+			const selection = window.getSelection();
+			const range = selection.getRangeAt(0);
+			const tempDiv = document.createElement('div');
+
+			// Remove background, color, and font styles
+			tempDiv.appendChild(range.cloneContents());
+
+			tempDiv.querySelectorAll('table').forEach((table) => {
+				table.style.borderCollapse = 'collapse';
+				table.style.width = 'auto';
+				table.style.tableLayout = 'auto';
+			});
+
+			tempDiv.querySelectorAll('th').forEach((th) => {
+				th.style.whiteSpace = 'nowrap';
+				th.style.padding = '4px 8px';
+			});
+
+			// Put cleaned HTML + plain text into clipboard
+			e.clipboardData.setData('text/html', tempDiv.innerHTML);
+			e.clipboardData.setData('text/plain', selection.toString());
+		}
+	};
+
 	onMount(async () => {
 		// console.log('ResponseMessage mounted');
 
 		await tick();
 		if (buttonsContainerElement) {
-			buttonsContainerElement.addEventListener('wheel', function (event) {
-				if (buttonsContainerElement.scrollWidth <= buttonsContainerElement.clientWidth) {
-					// If the container is not scrollable, horizontal scroll
-					return;
-				} else {
-					event.preventDefault();
+			buttonsContainerElement.addEventListener('wheel', buttonsWheelHandler);
+		}
 
-					if (event.deltaY !== 0) {
-						// Adjust horizontal scroll position based on vertical scroll
-						buttonsContainerElement.scrollLeft += event.deltaY;
-					}
-				}
-			});
+		if (contentContainerElement) {
+			contentContainerElement.addEventListener('copy', contentCopyHandler);
+		}
+	});
+
+	onDestroy(() => {
+		if (buttonsContainerElement) {
+			buttonsContainerElement.removeEventListener('wheel', buttonsWheelHandler);
+		}
+
+		if (contentContainerElement) {
+			contentContainerElement.removeEventListener('copy', contentCopyHandler);
 		}
 	});
 </script>
@@ -583,13 +630,10 @@
 			id="message-{message.id}"
 			dir={$settings.chatDirection}
 		>
-			<div class={`shrink-0 ltr:mr-3 rtl:ml-3 hidden @lg:flex `}>
+			<div class={`shrink-0 ltr:mr-3 rtl:ml-3 hidden @lg:flex mt-1 `}>
 				<ProfileImage
-					src={model?.info?.meta?.profile_image_url ??
-					($i18n.language === 'dg-DG'
-						? `${WEBUI_BASE_URL}/doge.png`
-						: `${WEBUI_BASE_URL}/favicon.png`)}
-				className={'size-8 assistant-message-profile-image'}
+					src={`${WEBUI_API_BASE_URL}/models/model/profile/image?id=${model?.id}&lang=${$i18n.language}`}
+				  className={'size-8 assistant-message-profile-image'}
 			/>
 		</div>
 
@@ -599,7 +643,7 @@
 					<span id="response-message-model-name" class="line-clamp-1 text-black dark:text-white">
 						{model?.name ?? message.model}
 					</span>
-					</Tooltip>
+				</Tooltip>
 
 				{#if message.timestamp}
 					<div
@@ -677,8 +721,8 @@
 							</div>
 						{/if}
 
-							{#if edit === true}
-								<div class="w-full bg-gray-50 dark:bg-gray-800 rounded-3xl px-5 py-3 my-2">
+						{#if edit === true}
+							<div class="w-full bg-gray-50 dark:bg-gray-800 rounded-3xl px-5 py-3 my-2">
 								<textarea
 									id="message-edit-{message.id}"
 									bind:this={editTextAreaElement}
@@ -710,10 +754,10 @@
 											on:click={() => {
 												saveAsCopyHandler();
 											}}
-											>
-												{$i18n.t('Save As Copy')}
-											</button>
-										</div>
+										>
+											{$i18n.t('Save As Copy')}
+										</button>
+									</div>
 
 									<div class="flex space-x-1.5">
 										<button
@@ -722,9 +766,9 @@
 											on:click={() => {
 												cancelEditMessage();
 											}}
-											>
-												{$i18n.t('Cancel')}
-											</button>
+										>
+											{$i18n.t('Cancel')}
+										</button>
 
 										<button
 											id="confirm-edit-message-button"
@@ -738,75 +782,79 @@
 									</div>
 								</div>
 							</div>
-						{:else}
-							<div class="w-full flex flex-col relative" id="response-content-container">
-								{#if message.content === '' && !message.error && ((model?.info?.meta?.capabilities?.status_updates ?? true) ? (message?.statusHistory ?? [...(message?.status ? [message?.status] : [])]).length === 0 || (message?.statusHistory?.at(-1)?.hidden ?? false) : true)}
-									<Skeleton />
-								{:else if message.content && message.error !== true}
-									<!-- always show message contents even if there's an error -->
-									<!-- unless message.error === true which is legacy error handling, where the error message is stored in message.content -->
-									<ContentRenderer
-										id={`${chatId}-${message.id}`}
-										messageId={message.id}
-										{history}
-										{selectedModels}
-										content={message.content}
-										sources={message.sources}
-										floatingButtons={message?.done &&
-											!readOnly &&
-											($settings?.showFloatingActionButtons ?? true)}
-										save={!readOnly}
-										preview={!readOnly}
-										{editCodeBlock}
-										{topPadding}
-										done={($settings?.chatFadeStreamingText ?? true)
-											? (message?.done ?? false)
-											: true}
-										{model}
-										onTaskClick={async (e) => {
-											console.log(e);
-										}}
-											onSourceClick={async (id, idx) => {
-											console.log(id, idx);
+						{/if}
 
-											if (citationsElement) {
-												citationsElement?.showSourceModal(idx - 1);
-											}
-										}}
-											onAddMessages={({ modelId, parentId, messages }) => {
-											addMessages({ modelId, parentId, messages });
-										}}
-										onSave={({ raw, oldContent, newContent }) => {
-											history.messages[message.id].content = history.messages[
-												message.id
-											].content.replace(raw, raw.replace(oldContent, newContent));
+						<div
+							bind:this={contentContainerElement}
+							class="w-full flex flex-col relative {edit ? 'hidden' : ''}"
+							id="response-content-container"
+						>
+							{#if message.content === '' && !message.error && ((model?.info?.meta?.capabilities?.status_updates ?? true) ? (message?.statusHistory ?? [...(message?.status ? [message?.status] : [])]).length === 0 || (message?.statusHistory?.at(-1)?.hidden ?? false) : true)}
+								<Skeleton />
+							{:else if message.content && message.error !== true}
+								<!-- always show message contents even if there's an error -->
+								<!-- unless message.error === true which is legacy error handling, where the error message is stored in message.content -->
+								<ContentRenderer
+									id={`${chatId}-${message.id}`}
+									messageId={message.id}
+									{history}
+									{selectedModels}
+									content={message.content}
+									sources={message.sources}
+									floatingButtons={message?.done &&
+										!readOnly &&
+										($settings?.showFloatingActionButtons ?? true)}
+									save={!readOnly}
+									preview={!readOnly}
+									{editCodeBlock}
+									{topPadding}
+									done={($settings?.chatFadeStreamingText ?? true)
+										? (message?.done ?? false)
+										: true}
+									{model}
+									onTaskClick={async (e) => {
+										console.log(e);
+									}}
+									onSourceClick={async (id) => {
+										console.log(id);
 
-											updateChat();
-										}}
-									/>
-								{/if}
+										if (citationsElement) {
+											citationsElement?.showSourceModal(id);
+										}
+									}}
+									onAddMessages={({ modelId, parentId, messages }) => {
+										addMessages({ modelId, parentId, messages });
+									}}
+									onSave={({ raw, oldContent, newContent }) => {
+										history.messages[message.id].content = history.messages[
+											message.id
+										].content.replace(raw, raw.replace(oldContent, newContent));
 
-									{#if message?.error}
-										<Error content={message?.error?.content ?? message.content} />
-									{/if}
+										updateChat();
+									}}
+								/>
+							{/if}
 
-								<!--	TODO Renesas edit: Hide all Citations -->
-								{#if (message?.sources || message?.citations) && (model?.info?.meta?.capabilities?.citations ?? true) && false}
-									<Citations
-										bind:this={citationsElement}
-										id={message?.id}
-										sources={message?.sources ?? message?.citations}
-										{readOnly}
-									/>
-								{/if}
+							{#if message?.error}
+								<Error content={message?.error?.content ?? message.content} />
+							{/if}
 
-									{#if message.code_executions}
-										<CodeExecutions codeExecutions={message.code_executions} />
-									{/if}
-								</div>
+							<!--	TODO Renesas edit: Hide all Citations -->
+							{#if (message?.sources || message?.citations) && (model?.info?.meta?.capabilities?.citations ?? true) && false}
+								<Citations
+									bind:this={citationsElement}
+									id={message?.id}
+									sources={message?.sources ?? message?.citations}
+									{readOnly}
+								/>
+							{/if}
+
+							{#if message.code_executions}
+								<CodeExecutions codeExecutions={message.code_executions} />
 							{/if}
 						</div>
 					</div>
+				</div>
 
 				{#if !edit}
 					<div
@@ -840,37 +888,37 @@
 										</svg>
 									</button>
 
-										{#if messageIndexEdit}
-											<div
-												class="text-sm flex justify-center font-semibold self-center dark:text-gray-100 min-w-fit"
-											>
-												<input
-													id="message-index-input-{message.id}"
-													type="number"
-													value={siblings.indexOf(message.id) + 1}
-													min="1"
-													max={siblings.length}
-													on:focus={(e) => {
+									{#if messageIndexEdit}
+										<div
+											class="text-sm flex justify-center font-semibold self-center dark:text-gray-100 min-w-fit"
+										>
+											<input
+												id="message-index-input-{message.id}"
+												type="number"
+												value={siblings.indexOf(message.id) + 1}
+												min="1"
+												max={siblings.length}
+												on:focus={(e) => {
 													e.target.select();
 												}}
-													on:blur={(e) => {
+												on:blur={(e) => {
 													gotoMessage(message, e.target.value - 1);
 													messageIndexEdit = false;
 												}}
-													on:keydown={(e) => {
+												on:keydown={(e) => {
 													if (e.key === 'Enter') {
 														gotoMessage(message, e.target.value - 1);
 														messageIndexEdit = false;
 													}
 												}}
-													class="bg-transparent font-semibold self-center dark:text-gray-100 min-w-fit outline-hidden"
-												/>/{siblings.length}
-											</div>
-										{:else}
-											<!-- svelte-ignore a11y-no-static-element-interactions -->
-											<div
-												class="text-sm tracking-widest font-semibold self-center dark:text-gray-100 min-w-fit"
-												on:dblclick={async () => {
+												class="bg-transparent font-semibold self-center dark:text-gray-100 min-w-fit outline-hidden"
+											/>/{siblings.length}
+										</div>
+									{:else}
+										<!-- svelte-ignore a11y-no-static-element-interactions -->
+										<div
+											class="text-sm tracking-widest font-semibold self-center dark:text-gray-100 min-w-fit"
+											on:dblclick={async () => {
 												messageIndexEdit = true;
 
 												await tick();
@@ -880,14 +928,14 @@
 													input.select();
 												}
 											}}
-											>
-												{siblings.indexOf(message.id) + 1}/{siblings.length}
-											</div>
-										{/if}
+										>
+											{siblings.indexOf(message.id) + 1}/{siblings.length}
+										</div>
+									{/if}
 
-										<button
-											class="self-center p-1 hover:bg-black/5 dark:hover:bg-white/5 dark:hover:text-white hover:text-black rounded-md transition"
-											on:click={() => {
+									<button
+										class="self-center p-1 hover:bg-black/5 dark:hover:bg-white/5 dark:hover:text-white hover:text-black rounded-md transition"
+										on:click={() => {
 											showNextMessage(message);
 										}}
 										aria-label={$i18n.t('Next message')}
@@ -920,7 +968,7 @@
 												class="{isLastMessage || ($settings?.highContrastMode ?? false)
 													? 'visible'
 													: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition"
-													on:click={() => {
+												on:click={() => {
 													editMessageHandler();
 												}}
 											>
@@ -950,7 +998,7 @@
 										class="{isLastMessage || ($settings?.highContrastMode ?? false)
 											? 'visible'
 											: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition copy-response-button"
-											on:click={() => {
+										on:click={() => {
 											copyToClipboard(message.content);
 										}}
 									>
@@ -1067,7 +1115,7 @@
 											class="{isLastMessage || ($settings?.highContrastMode ?? false)
 												? 'visible'
 												: 'invisible group-hover:visible'}  p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition"
-												on:click={() => {
+											on:click={() => {
 												if (!generatingImage) {
 													generateImage(message);
 												}
@@ -1087,13 +1135,13 @@
 															animation-delay: -0.8s;
 														}
 
-                                .spinner_Km9P {
-                                    animation-delay: -0.65s;
-                                }
+														.spinner_Km9P {
+															animation-delay: -0.65s;
+														}
 
-                                .spinner_JApP {
-                                    animation-delay: -0.5s;
-                                }
+														.spinner_JApP {
+															animation-delay: -0.5s;
+														}
 
 														@keyframes spinner_MGfb {
 															93.75%,
@@ -1127,9 +1175,9 @@
 									</Tooltip>
 								{/if}
 
-									{#if message.usage}
-										<Tooltip
-											content={message.usage
+								{#if message.usage}
+									<Tooltip
+										content={message.usage
 											? `<pre>${sanitizeResponseContent(
 													JSON.stringify(message.usage, null, 2)
 														.replace(/"([^(")"]+)":/g, '$1:')
@@ -1147,7 +1195,7 @@
 											class=" {isLastMessage || ($settings?.highContrastMode ?? false)
 												? 'visible'
 												: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition whitespace-pre-wrap"
-												on:click={() => {
+											on:click={() => {
 												console.log(message);
 											}}
 											id="info-{message.id}"
@@ -1183,8 +1231,8 @@
 												).toString() === '1'
 													? 'bg-gray-100 dark:bg-gray-800'
 													: ''} dark:hover:text-white hover:text-black transition disabled:cursor-progress disabled:hover:bg-transparent"
-													disabled={feedbackLoading}
-													on:click={async () => {
+												disabled={feedbackLoading}
+												on:click={async () => {
 													await feedbackHandler(1);
 													window.setTimeout(() => {
 														document
@@ -1221,8 +1269,8 @@
 												).toString() === '-1'
 													? 'bg-gray-100 dark:bg-gray-800'
 													: ''} dark:hover:text-white hover:text-black transition disabled:cursor-progress disabled:hover:bg-transparent"
-													disabled={feedbackLoading}
-													on:click={async () => {
+												disabled={feedbackLoading}
+												on:click={async () => {
 													await feedbackHandler(-1);
 													window.setTimeout(() => {
 														document
@@ -1441,7 +1489,7 @@
 													class="{isLastMessage || ($settings?.highContrastMode ?? false)
 														? 'visible'
 														: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition"
-														on:click={() => {
+													on:click={() => {
 														actionMessage(action.id, message);
 													}}
 												>
@@ -1452,27 +1500,27 @@
 																class="w-4 h-4 {action.icon.includes('svg')
 																	? 'dark:invert-[80%]'
 																	: ''}"
-																	style="fill: currentColor;"
-																	alt={action.name}
-																/>
-															</div>
-														{:else}
-															<Sparkles strokeWidth="2.1" className="size-4" />
-														{/if}
-													</button>
-												</Tooltip>
-											{/each}
-										{/if}
+																style="fill: currentColor;"
+																alt={action.name}
+															/>
+														</div>
+													{:else}
+														<Sparkles strokeWidth="2.1" className="size-4" />
+													{/if}
+												</button>
+											</Tooltip>
+										{/each}
 									{/if}
 								{/if}
 							{/if}
-						</div>
+						{/if}
+					</div>
 
-						{#if message.done && showRateComment}
-							<RateComment
-								bind:message
-								bind:show={showRateComment}
-								on:save={async (e) => {
+					{#if message.done && showRateComment}
+						<RateComment
+							bind:message
+							bind:show={showRateComment}
+							on:save={async (e) => {
 								await feedbackHandler(null, {
 									...e.detail
 								});
@@ -1499,63 +1547,6 @@
 				{/if}
 			</div>
 		</div>
-		</div>
-	</div>
-	{#if feedback}
-		<div class="flex gap-2 mt-2">
-			<div class="flex items-start mt-1">
-				{#if feedback.data?.rating === 1}
-					<Badge type="success" content={$i18n.t('Feedback')} />
-				{:else if feedback.data?.rating === 0}
-					<Badge type="info" content={$i18n.t('Feedback')} />
-				{:else if feedback.data?.rating === -1}
-					<Badge type="error" content={$i18n.t('Feedback')} />
-				{/if}
-			</div>
-			<div class="flex flex-col gap-1">
-				<div>
-					{$i18n.t('Comment')}: {feedback.data?.comment || ''}
-				</div>
-				<div>
-					{$i18n.t('Reason')}:
-					{#if feedback.data?.reason === 'accurate_information'}
-						{$i18n.t('Accurate information')}
-					{:else if feedback.data?.reason === 'followed_instructions_perfectly'}
-						{$i18n.t('Followed instructions perfectly')}
-					{:else if feedback.data?.reason === 'showcased_creativity'}
-						{$i18n.t('Showcased creativity')}
-					{:else if feedback.data?.reason === 'positive_attitude'}
-						{$i18n.t('Positive attitude')}
-					{:else if feedback.data?.reason === 'attention_to_detail'}
-						{$i18n.t('Attention to detail')}
-					{:else if feedback.data?.reason === 'thorough_explanation'}
-						{$i18n.t('Thorough explanation')}
-					{:else if feedback.data?.reason === 'dont_like_the_style'}
-						{$i18n.t("Don't like the style")}
-					{:else if feedback.data?.reason === 'too_verbose'}
-						{$i18n.t('Too verbose')}
-					{:else if feedback.data?.reason === 'not_helpful'}
-						{$i18n.t('Not helpful')}
-					{:else if feedback.data?.reason === 'not_factually_correct'}
-						{$i18n.t('Not factually correct')}
-					{:else if feedback.data?.reason === 'didnt_fully_follow_instructions'}
-						{$i18n.t("Didn't fully follow instructions")}
-					{:else if feedback.data?.reason === 'refused_when_it_shouldnt_have'}
-						{$i18n.t("Refused when it shouldn't have")}
-					{:else if feedback.data?.reason === 'being_lazy'}
-						{$i18n.t('Being lazy')}
-					{:else if feedback.data?.reason === 'other'}
-						{$i18n.t('Other')}
-					{:else}
-						{feedback.data?.reason || ''}
-					{/if}
-				</div>
-				<div>
-					{$i18n.t('Rating')}: {feedback.data?.details?.rating ? `${feedback.data?.details?.rating}/10` : 'N/A'}
-				</div>
-			</div>
-		</div>
-	{/if}
 	</div>
 {/key}
 

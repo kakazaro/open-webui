@@ -36,7 +36,9 @@
 	let feedbacks = [];
 
 	onMount(async () => {
+		// TODO: feedbacks elo rating calculation should be done in the backend; remove below line later
 		// feedbacks = await getAllFeedbacks(localStorage.token);
+
 		loaded = true;
 
 		const containerElement = document.getElementById('users-tabs-container');

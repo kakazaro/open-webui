@@ -7,6 +7,8 @@ from open_webui.models.feedbacks import (
     FeedbackModel,
     FeedbackResponse,
     FeedbackForm,
+    FeedbackUserResponse,
+    FeedbackListResponse,
     Feedbacks,
     FeedbackEvaluate,
     FeedbackUserPaginationResponse,
@@ -106,6 +108,31 @@ async def get_feedbacks(user=Depends(get_verified_user)):
 async def delete_feedbacks(user=Depends(get_verified_user)):
     success = Feedbacks.delete_feedbacks_by_user_id(user.id)
     return success
+
+
+PAGE_ITEM_COUNT = 30
+
+
+@router.get("/feedbacks/list", response_model=FeedbackListResponse)
+async def get_feedbacks(
+    order_by: Optional[str] = None,
+    direction: Optional[str] = None,
+    page: Optional[int] = 1,
+    user=Depends(get_admin_user),
+):
+    limit = PAGE_ITEM_COUNT
+
+    page = max(1, page)
+    skip = (page - 1) * limit
+
+    filter = {}
+    if order_by:
+        filter["order_by"] = order_by
+    if direction:
+        filter["direction"] = direction
+
+    result = Feedbacks.get_feedback_items(filter=filter, skip=skip, limit=limit)
+    return result
 
 
 @router.post("/feedback", response_model=FeedbackModel)
