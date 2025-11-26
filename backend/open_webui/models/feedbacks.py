@@ -97,11 +97,6 @@ class FeedbackForm(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
-class FeedbackUserPaginationResponse(BaseModel):
-    count: int
-    list: list[FeedbackUserResponse]
-
-
 class FeedbackEvaluate(BaseModel):
     model_id: str
     count: int
@@ -136,6 +131,10 @@ class FeedbackUserResponse(BaseModel):
     chat_id: str
     user: Optional[UserModel] = None
     model_config = ConfigDict(from_attributes=True)
+
+class FeedbackUserPaginationResponse(BaseModel):
+    count: int
+    list: list[FeedbackUserResponse]
 
 
 class FeedbackListResponse(BaseModel):
