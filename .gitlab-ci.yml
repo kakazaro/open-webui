@@ -15,10 +15,11 @@ build_image:
     - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
     - docker save -o image.tar ${IMAGE_NAME}:${IMAGE_TAG}
     - docker rmi ${IMAGE_NAME}:${IMAGE_TAG}
+    - bash -c "split -b 500000000 image.tar image.tar.part-" # Split the tar file into 500MB parts
   artifacts:
     paths:
-      - image.tar
-    expire_in: 1 hours
+      - image.tar.part-* # Upload all the parts as artifacts
+    expire_in: 1 days
   only:
     - main
 
@@ -35,6 +36,7 @@ deploy_main:
     - cp $SSL_KEY ./ssl/nginx.key
     - export DATABRICKS_CLIENT_ID=$DATABRICKS_CLIENT_ID
     - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
+    - cat image.tar.part-* > image.tar # Reassemble the tar file
     - docker load -i image.tar
     - docker compose -f docker-compose.renesas.yaml up --force-recreate -d
     - docker system prune -af
