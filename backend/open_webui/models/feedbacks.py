@@ -8,13 +8,11 @@ from open_webui.models.users import User
 from open_webui.models.chats import Chats
 from open_webui.models.users import User, UserModel
 
-from open_webui.env import SRC_LOG_LEVELS
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import BigInteger, Column, Text, JSON, Boolean, func, case, cast
 from sqlalchemy.orm import defer
 
 log = logging.getLogger(__name__)
-log.setLevel(SRC_LOG_LEVELS["MODELS"])
 
 
 ####################
@@ -63,6 +61,13 @@ class FeedbackResponse(BaseModel):
     data: Optional[dict] = None
     meta: Optional[dict] = None
     snapshot: Optional[dict] = None
+    created_at: int
+    updated_at: int
+
+
+class FeedbackIdResponse(BaseModel):
+    id: str
+    user_id: str
     created_at: int
     updated_at: int
 

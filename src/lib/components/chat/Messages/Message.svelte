@@ -107,30 +107,32 @@
 				feedback={feedbacks.find(f => f.meta.message_id === messageId)}
 			/>
 		{:else}
-			<MultiResponseMessages
-				bind:history
-				{chatId}
-				{messageId}
-				{selectedModels}
-				isLastMessage={messageId === history?.currentId}
-				{setInputText}
-				{updateChat}
-				{editMessage}
-				{saveMessage}
-				{rateMessage}
-				{actionMessage}
-				{submitMessage}
-				{deleteMessage}
-				{continueResponse}
-				{regenerateResponse}
-				{mergeResponses}
-				{triggerScroll}
-				{addMessages}
-				{readOnly}
-				{editCodeBlock}
-				{topPadding}
-				{feedbacks}
-			/>
+			{#key messageId}
+				<MultiResponseMessages
+					bind:history
+					{chatId}
+					{messageId}
+					{selectedModels}
+					isLastMessage={messageId === history?.currentId}
+					{setInputText}
+					{updateChat}
+					{editMessage}
+					{saveMessage}
+					{rateMessage}
+					{actionMessage}
+					{submitMessage}
+					{deleteMessage}
+					{continueResponse}
+					{regenerateResponse}
+					{mergeResponses}
+					{triggerScroll}
+					{addMessages}
+					{readOnly}
+					{editCodeBlock}
+					{topPadding}
+				    {feedbacks}
+				/>
+			{/key}
 		{/if}
 	{/if}
 </div>
