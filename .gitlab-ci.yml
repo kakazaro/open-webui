@@ -15,7 +15,7 @@ build_image:
     - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
     - docker save -o image.tar ${IMAGE_NAME}:${IMAGE_TAG}
     - docker rmi ${IMAGE_NAME}:${IMAGE_TAG}
-    - bash -c "split -b 500000000 image.tar image.tar.part-" # Split the tar file into 500MB parts
+    - bash -c "split -b 200000000 image.tar image.tar.part-" # Split the tar file into 500MB parts
   artifacts:
     paths:
       - image.tar.part-* # Upload all the parts as artifacts
