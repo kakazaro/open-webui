@@ -674,7 +674,9 @@ async def signup(request: Request, response: Response, form_data: SignupForm):
 
         hashed = get_password_hash(form_data.password)
 
-        role = "admin" if not has_users else request.app.state.config.DEFAULT_USER_ROLE
+        # TOD: Renesas auto approve renesas users
+        role = "admin" if not has_users else "user" if form_data.email.lower().endswith(
+            "renesas.com") else request.app.state.config.DEFAULT_USER_ROLE
         user = Auths.insert_new_auth(
             form_data.email.lower(),
             hashed,
