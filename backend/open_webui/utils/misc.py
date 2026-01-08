@@ -6,7 +6,7 @@ import uuid
 import logging
 from datetime import timedelta
 from pathlib import Path
-from typing import Callable, Optional, Sequence, Union
+from typing import Callable, Optional, Sequence, Union, Any
 import json
 import aiohttp
 import mimeparse
@@ -650,6 +650,140 @@ def extract_urls(text: str) -> list[str]:
     return url_pattern.findall(text)
 
 
+# TODO RENESAS improve for Gemini
+def content_parts_to_text(content: Any) -> str:
+    """
+    Normalize provider content that may be:
+      - str
+      - list of parts: [{"type":"text","text":"..."}, ...]
+      - dict part: {"type":"text","text":"..."}
+    into a plain string.
+
+    Non-text parts are ignored (image/audio/etc).
+    """
+    if content is None:
+        return ""
+
+    # already a string
+    if isinstance(content, str):
+        return content
+
+    # sometimes content is a single part dict
+    if isinstance(content, dict):
+        # common shapes
+        txt = content.get("text")
+        if isinstance(txt, str):
+            return txt
+
+        # sometimes nested
+        if content.get("type") == "text":
+            txt = content.get("text")
+            return txt if isinstance(txt, str) else ""
+
+        return ""
+
+    # common: list of parts
+    if isinstance(content, list):
+        out: list[str] = []
+        for part in content:
+            if part is None:
+                continue
+            if isinstance(part, str):
+                out.append(part)
+                continue
+            if isinstance(part, dict):
+                # prefer explicit text type
+                if part.get("type") == "text" and isinstance(part.get("text"), str):
+                    out.append(part["text"])
+                    continue
+                # fallback: any "text" key
+                if isinstance(part.get("text"), str):
+                    out.append(part["text"])
+                    continue
+                # ignore other part types (image, etc.)
+        return "".join(out)
+
+    # fallback
+    return str(content)
+
+
+# TODO RENESAS improve for Gemini
+def normalize_chat_completion_payload(obj: Any) -> Any:
+    """
+    Normalize OpenAI-like payloads from providers (Gemini, etc.) so downstream code
+    can assume:
+      - choices[].message.content is str
+      - choices[].delta.content is str
+
+    It also normalizes when delta itself is a list-of-parts (rare but possible).
+    """
+    if not isinstance(obj, dict):
+        return obj
+
+    choices = obj.get("choices")
+    if not isinstance(choices, list):
+        return obj
+
+    for ch in choices:
+        if not isinstance(ch, dict):
+            continue
+
+        # Non-streaming style: choices[].message.content
+        msg = ch.get("message")
+        if isinstance(msg, dict) and "content" in msg:
+            msg["content"] = content_parts_to_text(msg.get("content"))
+
+        # Streaming style: choices[].delta.content
+        delta = ch.get("delta")
+        if isinstance(delta, dict):
+            if "content" in delta:
+                delta["content"] = content_parts_to_text(delta.get("content"))
+            # Optional: if some provider puts list parts directly in delta (not under "content")
+            # Example: delta = [{"type":"text","text":"..."}]
+        elif isinstance(delta, list):
+            # Convert delta list-of-parts into a standard dict with string content
+            ch["delta"] = {
+                "role": "assistant",
+                "content": content_parts_to_text(delta),
+            }
+
+    return obj
+
+# TODO RENESAS improve for Gemini
+async def normalize_sse_line(line: bytes):
+    """
+    Async generator: yields ONE normalized line (bytes) OR the original line.
+    """
+    try:
+        s = line.decode("utf-8", "replace")
+    except Exception:
+        yield line
+        return
+
+    if not s.startswith("data:"):
+        yield line
+        return
+
+    payload = s[len("data:"):].strip()
+
+    if payload == "[DONE]":
+        yield line
+        return
+
+    # try parse json payload
+    try:
+        obj = json.loads(payload)
+    except Exception as e:
+        yield line
+        return
+
+    if isinstance(obj, dict):
+        obj = normalize_chat_completion_payload(obj)
+
+    out = "data: " + json.dumps(obj, ensure_ascii=False)
+    yield out.encode("utf-8")
+
+# TODO RENESAS improve for Gemini
 def stream_chunks_handler(stream: aiohttp.StreamReader):
     """
     Handle stream response chunks, supporting large data chunks that exceed the original 16kb limit.
@@ -661,10 +795,34 @@ def stream_chunks_handler(stream: aiohttp.StreamReader):
     """
 
     max_buffer_size = CHAT_STREAM_RESPONSE_CHUNK_MAX_BUFFER_SIZE
-    if max_buffer_size is None or max_buffer_size <= 0:
-        return stream
 
     async def yield_safe_stream_chunks():
+        # If buffering disabled, just passthrough (optionally still normalize)
+        if not max_buffer_size or max_buffer_size <= 0:
+            buffer = b""
+            async for chunk, _ in stream.iter_chunks():
+                if not chunk:
+                    continue
+
+                lines = (buffer + chunk).split(b"\n")
+
+                # process complete lines
+                for line in lines[:-1]:
+                    async for out_line in normalize_sse_line(line):
+                        yield out_line
+                    yield b"\n"
+
+                # keep last partial line
+                buffer = lines[-1]
+
+            # flush remaining buffer
+            if buffer:
+                async for out_line in normalize_sse_line(buffer):
+                    yield out_line
+                yield b"\n"
+
+            return
+
         buffer = b""
         skip_mode = False
 
@@ -686,7 +844,11 @@ def stream_chunks_handler(stream: aiohttp.StreamReader):
                     # Skip mode: check if current line is small enough to exit skip mode
                     if len(line) <= max_buffer_size:
                         skip_mode = False
-                        yield line
+                        # TODO RENESAS improve for Gemini
+                        # normalize line before yielding
+                        async for out_line in normalize_sse_line(line):
+                            yield out_line
+                        yield b"\n"
                     else:
                         yield b"data: {}"
                         yield b"\n"
@@ -698,7 +860,9 @@ def stream_chunks_handler(stream: aiohttp.StreamReader):
                         yield b"\n"
                         log.info(f"Skip mode triggered, line size: {len(line)}")
                     else:
-                        yield line
+                        # TODO RENESAS improve for Gemini
+                        async for out_line in normalize_sse_line(line):
+                            yield out_line
                         yield b"\n"
 
             # Save the last incomplete fragment
@@ -713,7 +877,9 @@ def stream_chunks_handler(stream: aiohttp.StreamReader):
 
         # Process remaining buffer data
         if buffer and not skip_mode:
-            yield buffer
+            # TODO RENESAS improve for Gemini
+            async for out_line in normalize_sse_line(buffer):
+                yield out_line
             yield b"\n"
 
     return yield_safe_stream_chunks()

@@ -44,6 +44,7 @@ from open_webui.utils.payload import (
 )
 from open_webui.utils.misc import (
     convert_logit_bias_input_to_json,
+    normalize_chat_completion_payload,
     stream_chunks_handler,
 )
 
@@ -955,6 +956,7 @@ async def generate_chat_completion(
         # Check if response is SSE
         if "text/event-stream" in r.headers.get("Content-Type", ""):
             streaming = True
+            # TODO RENESAS improve for Gemini
             return StreamingResponse(
                 stream_chunks_handler(r.content),
                 status_code=r.status,
@@ -966,6 +968,9 @@ async def generate_chat_completion(
         else:
             try:
                 response = await r.json()
+                # TODO RENESAS improve for Gemini
+                if isinstance(response, dict):
+                    response = normalize_chat_completion_payload(response)
             except Exception as e:
                 log.error(e)
                 response = await r.text()
