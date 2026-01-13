@@ -326,7 +326,7 @@ async def get_all_feedbacks(
 ):
     # TODO: renesas
     # feedbacks = Feedbacks.get_all_feedbacks(db=db)
-    feedbacks = Feedbacks.get_all_feedbacks_with_user()
+    feedbacks = Feedbacks.get_all_feedbacks_with_user(db=db)
     return [
         FeedbackUserResponse(**feedback.model_dump())
         for feedback in feedbacks
@@ -352,13 +352,16 @@ async def delete_all_feedbacks(
 async def get_all_feedbacks_pagination(
         limit: Optional[int] = None,
         page: Optional[int] = None,
-        user=Depends(get_admin_user)):
+        user=Depends(get_admin_user),
+        db: Session = Depends(get_session)):
     return Feedbacks.get_all_feedbacks_with_user_pagination(limit, page)
 
 
 @router.get("/feedbacks/evaluate", response_model=list[FeedbackEvaluate])
-async def get_feedbacks_evaluate(user=Depends(get_admin_user)):
-    return Feedbacks.get_feedbacks_grouped_by_model_id()
+async def get_feedbacks_evaluate(
+        user=Depends(get_admin_user),
+        db: Session = Depends(get_session)):
+    return Feedbacks.get_feedbacks_grouped_by_model_id(db=db)
 
 
 @router.get("/feedbacks/all/export", response_model=list[FeedbackModel])
@@ -490,8 +493,8 @@ async def delete_feedback_by_id(
     return success
 
 @router.get("/feedbacks/chat/{id}", response_model=list[FeedbackUserResponse])
-async def get_feedbacks_by_chat_id(id: str):
-    feedbacks = Feedbacks.get_feedbacks_by_chat_id(chat_id=id)
+async def get_feedbacks_by_chat_id(id: str, db: Session = Depends(get_session)):
+    feedbacks = Feedbacks.get_feedbacks_by_chat_id(chat_id=id, db=db)
     return [
         FeedbackUserResponse(
             **feedback.model_dump(), user=Users.get_user_by_id(feedback.user_id)

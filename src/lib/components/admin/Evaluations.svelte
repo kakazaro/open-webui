@@ -16,7 +16,7 @@
 	$: {
 		const pathParts = $page.url.pathname.split('/');
 		const tabFromPath = pathParts[pathParts.length - 1];
-		selectedTab = ['leaderboard', 'feedback'].includes(tabFromPath) ? tabFromPath : 'leaderboard';
+		selectedTab = ['leaderboard', 'feedback', 'chats'].includes(tabFromPath) ? tabFromPath : 'leaderboard';
 	}
 
 	$: if (selectedTab) {
@@ -113,12 +113,13 @@
 			</button>
 
 			<button
+				id="chats"
 				class="px-0.5 py-1 min-w-fit rounded-lg lg:flex-none flex text-right transition {selectedTab ===
 				'chats'
 					? ''
 					: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
 				on:click={() => {
-					selectedTab = 'chats';
+					goto('/admin/evaluations/chats');
 				}}
 			>
 				<div class=" self-center mr-2">
@@ -142,7 +143,7 @@
 		<div class="flex-1 mt-1 lg:mt-0 px-[16px] lg:pr-[16px] lg:pl-0 overflow-y-scroll">
 			{#if selectedTab === 'leaderboard'}
 				<NewLeaderboard />
-			{:else if selectedTab === 'feedbacks'}
+			{:else if selectedTab === 'feedback'}
 				<NewFeedbacks />
 			{:else if selectedTab === 'chats'}
 				<Chats />

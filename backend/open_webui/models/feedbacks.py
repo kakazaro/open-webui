@@ -316,10 +316,10 @@ class FeedbackTable:
                 for feedback, user in results
             ]
 
-    def get_all_feedbacks_with_user_pagination(self, limit: int = 10, page: int = 1) -> FeedbackUserPaginationResponse:
+    def get_all_feedbacks_with_user_pagination(self, limit: int = 10, page: int = 1, db: Optional[Session] = None) -> FeedbackUserPaginationResponse:
         # Calculate the offset based on page and limit
         offset = (page - 1) * limit
-        with get_db() as db:
+        with get_db_context(db) as db:
             count = db.query(func.count(Feedback.id)).scalar()
             snapshot_chat_title = func.json_extract(Feedback.snapshot, '$.chat.title').label('chat_title')
 
@@ -344,8 +344,8 @@ class FeedbackTable:
                 ]
             })
 
-    def get_feedbacks_grouped_by_model_id(self) -> list[FeedbackEvaluate]:
-        with get_db() as db:
+    def get_feedbacks_grouped_by_model_id(self, db: Optional[Session] = None) -> list[FeedbackEvaluate]:
+        with get_db_context(db) as db:
             # Aggregate feedback based on the model_id in data
             results = (
                 db.query(
