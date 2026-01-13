@@ -167,6 +167,7 @@ RUN pip3 install --no-cache-dir uv tiktoken && \
 
 # install python dependencies - msoffcrypto-tool
 RUN pip3 install --trusted-host msoffcrypto-tool chardet
+RUN pip3 install --trusted-host uvicorn
 
 # copy embedding weight from build
 # RUN mkdir -p /root/.cache/chroma/onnx_models/all-MiniLM-L6-v2
