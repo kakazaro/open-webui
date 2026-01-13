@@ -6,7 +6,6 @@
 	import Leaderboard from './Evaluations/Leaderboard.svelte';
 	import Feedbacks from './Evaluations/Feedbacks.svelte';
 
-	// import { getAllFeedbacks } from '$lib/apis/evaluations';
 	import Chats from '$lib/components/admin/Evaluations/Chats.svelte';
 	import NewLeaderboard from '$lib/components/admin/Evaluations/NewLeaderboard.svelte';
 	import NewFeedbacks from '$lib/components/admin/Evaluations/NewFeedbacks.svelte';
@@ -17,7 +16,7 @@
 	$: {
 		const pathParts = $page.url.pathname.split('/');
 		const tabFromPath = pathParts[pathParts.length - 1];
-		selectedTab = ['leaderboard', 'feedbacks'].includes(tabFromPath) ? tabFromPath : 'leaderboard';
+		selectedTab = ['leaderboard', 'feedback'].includes(tabFromPath) ? tabFromPath : 'leaderboard';
 	}
 
 	$: if (selectedTab) {
@@ -33,12 +32,8 @@
 	};
 
 	let loaded = false;
-	let feedbacks = [];
 
 	onMount(async () => {
-		// TODO: feedbacks elo rating calculation should be done in the backend; remove below line later
-		// feedbacks = await getAllFeedbacks(localStorage.token);
-
 		loaded = true;
 
 		const containerElement = document.getElementById('users-tabs-container');
@@ -91,13 +86,13 @@
 			</button>
 
 			<button
-				id="feedbacks"
+				id="feedback"
 				class="px-0.5 py-1 min-w-fit rounded-lg lg:flex-none flex text-right transition {selectedTab ===
-				'feedbacks'
+				'feedback'
 					? ''
 					: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
 				on:click={() => {
-					goto('/admin/evaluations/feedbacks');
+					goto('/admin/evaluations/feedback');
 				}}
 			>
 				<div class=" self-center mr-2">
@@ -114,7 +109,7 @@
 						/>
 					</svg>
 				</div>
-				<div class=" self-center">{$i18n.t('Feedbacks')}</div>
+				<div class=" self-center">{$i18n.t('Feedback')}</div>
 			</button>
 
 			<button
