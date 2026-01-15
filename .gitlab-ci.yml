@@ -59,9 +59,8 @@ deploy_development:
   script:
     - export DATABRICKS_CLIENT_ID=$DATABRICKS_CLIENT_ID
     - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
-    - 'curl --location --output artifacts.zip \
-        --url "https://jc.gitlab.renesasworkbench.com/api/v4/projects/$CI_PROJECT_ID/jobs/$TARGET_JOB_ID/artifacts?job_token=$CI_JOB_TOKEN"'
-    - 'unzip -o "artifacts.zip" -d "./'
+    - curl --location --output artifacts.zip --url "https://jc.gitlab.renesasworkbench.com/api/v4/projects/$CI_PROJECT_ID/jobs/$TARGET_JOB_ID/artifacts?job_token=$CI_JOB_TOKEN"
+    - unzip -o "artifacts.zip" -d "./"
     - cat image.tar.part-* > image.tar # Reassemble the tar file
     - docker load -i image.tar
     - docker compose -f docker-compose.renesas.dev.yaml up --force-recreate -d
