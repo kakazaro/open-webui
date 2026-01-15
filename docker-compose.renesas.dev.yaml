@@ -1,0 +1,30 @@
+services:
+  open-webui-dev:
+    image: r-open-webui:latest
+    container_name: open-webui-dev
+    volumes:
+      - open-webui-dev:/app/backend/data
+    environment:
+      - 'ENABLE_OLLAMA_API=False'
+      - 'WEBUI_SECRET_KEY=my_secret_webui_key'
+      - 'WEBUI_NAME=Generative AI Dev'
+      - 'WEBUI_URL=http://10.210.106.4:7390'
+      - 'DATABRICKS_CLIENT_ID=${DATABRICKS_CLIENT_ID}'
+      - 'DATABRICKS_CLIENT_SECRET=${DATABRICKS_CLIENT_SECRET}'
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+
+  proxy-dev:
+    image: nginx:1.25.4-alpine3.18
+    container_name: open-reverse-proxy-dev
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf
+    ports:
+      - "7390:8080"
+    depends_on:
+      - open-webui-dev
+    restart: unless-stopped
+
+volumes:
+  open-webui-dev: { }

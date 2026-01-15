@@ -1,6 +1,5 @@
 stages:
   - build
-  - deploy
 
 variables:
   IMAGE_NAME: r-open-webui
@@ -12,33 +11,33 @@ build_image:
     - windows
     - shell
   script:
-    - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${IMAGE_TAG} .
-    - docker save -o image.tar ${IMAGE_NAME}:${IMAGE_TAG}
-    - docker rmi ${IMAGE_NAME}:${IMAGE_TAG}
-    - bash -c "split -b 200000000 image.tar image.tar.part-" # Split the tar file into 500MB parts
+    - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${CI_COMMIT_TAG} .
+    - docker save -o image.tar ${IMAGE_NAME}:${CI_COMMIT_TAG}
+    - docker rmi ${IMAGE_NAME}:${CI_COMMIT_TAG}
+    - bash -c "split -b 200000000 image.tar image.tar.part-" # Split the tar file into 200MB parts
   artifacts:
     paths:
       - image.tar.part-* # Upload all the parts as artifacts
-    expire_in: 1 days
+#    expire_in: 1 days
   only:
-    - main
+    - if: $CI_COMMIT_TAG =~ /^r.*/
 
-deploy_main:
-  stage: deploy
-  tags:
-    - linux
-    - deploy
-    - web
-  needs:
-    - build_image
-  script:
-    - cp $SSL_CRT ./ssl/nginx.crt
-    - cp $SSL_KEY ./ssl/nginx.key
-    - export DATABRICKS_CLIENT_ID=$DATABRICKS_CLIENT_ID
-    - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
-    - cat image.tar.part-* > image.tar # Reassemble the tar file
-    - docker load -i image.tar
-    - docker compose -f docker-compose.renesas.yaml up --force-recreate -d
-    - docker system prune -af
-  only:
-    - main
+#deploy_main:
+#  stage: deploy
+#  tags:
+#    - linux
+#    - deploy
+#    - web
+#  needs:
+#    - build_image
+#  script:
+#    - cp $SSL_CRT ./ssl/nginx.crt
+#    - cp $SSL_KEY ./ssl/nginx.key
+#    - export DATABRICKS_CLIENT_ID=$DATABRICKS_CLIENT_ID
+#    - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
+#    - cat image.tar.part-* > image.tar # Reassemble the tar file
+#    - docker load -i image.tar
+#    - docker compose -f docker-compose.renesas.yaml up --force-recreate -d
+#    - docker system prune -af
+#  only:
+#    - main
