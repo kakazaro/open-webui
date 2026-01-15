@@ -463,6 +463,7 @@ from open_webui.env import (
     MAX_BODY_LOG_SIZE,
     SAFE_MODE,
     VERSION,
+    VERSION_TAG,
     DEPLOYMENT_ID,
     INSTANCE_ID,
     WEBUI_BUILD_HASH,
@@ -575,7 +576,7 @@ print(
  ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═══╝     ╚══╝╚══╝ ╚══════╝╚═════╝  ╚═════╝ ╚═╝
 
 
-v{VERSION} - building the best AI user interface.
+v{VERSION} - building the best AI user interface. (tag: {VERSION_TAG})
 {f"Commit: {WEBUI_BUILD_HASH}" if WEBUI_BUILD_HASH != "dev-build" else ""}
 https://github.com/open-webui/open-webui
 """
@@ -2122,6 +2123,7 @@ async def update_webhook_url(form_data: UrlForm, user=Depends(get_admin_user)):
 async def get_app_version():
     return {
         "version": VERSION,
+        "tag": VERSION_TAG,
         "deployment_id": DEPLOYMENT_ID,
     }
 

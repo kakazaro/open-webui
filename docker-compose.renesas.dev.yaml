@@ -1,6 +1,6 @@
 services:
   open-webui-dev:
-    image: r-open-webui:latest
+    image: r-open-webui:${VERSION_TAG}
     container_name: open-webui-dev
     volumes:
       - open-webui-dev:/app/backend/data
@@ -11,6 +11,7 @@ services:
       - 'WEBUI_URL=http://10.210.106.4:7390'
       - 'DATABRICKS_CLIENT_ID=${DATABRICKS_CLIENT_ID}'
       - 'DATABRICKS_CLIENT_SECRET=${DATABRICKS_CLIENT_SECRET}'
+      - 'VERSION_TAG=${VERSION_TAG}'
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
