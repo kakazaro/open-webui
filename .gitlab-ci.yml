@@ -25,30 +25,7 @@ build_image:
   rules:
     - if: $CI_COMMIT_TAG =~ /^r.*/
 
-deploy_production:
-  stage: deploy
-  tags:
-    - linux
-    - deploy
-    - web
-  variables:
-    VERSION_TAG: ${VERSION_TAG}
-  script:
-    - cp $SSL_CRT ./ssl/nginx.crt
-    - cp $SSL_KEY ./ssl/nginx.key
-    - export DATABRICKS_CLIENT_ID=$DATABRICKS_CLIENT_ID
-    - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
-    - 'curl --location --output artifacts.zip \
-        --url "https://jc.gitlab.renesasworkbench.com/api/v4/projects/$CI_PROJECT_ID/jobs/$TARGET_JOB_ID/artifacts?job_token=$CI_JOB_TOKEN"'
-    - 'unzip -o "artifacts.zip" -d "./'
-    - cat image.tar.part-* > image.tar # Reassemble the tar file
-    - docker load -i image.tar
-    - docker compose -f docker-compose.renesas.yaml up --force-recreate -d
-    - docker system prune -af
-  rules:
-    - if: '$SOURCE_TRIGGER == "request_deploy_production"'
-
-deploy_development:
+.deploy_base:
   stage: deploy
   tags:
     - linux
@@ -61,9 +38,24 @@ deploy_development:
     - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
     - curl --location --output artifacts.zip --url "https://jc.gitlab.renesasworkbench.com/api/v4/projects/$CI_PROJECT_ID/jobs/$TARGET_JOB_ID/artifacts?job_token=$CI_JOB_TOKEN"
     - unzip -o "artifacts.zip" -d "./"
-    - cat image.tar.part-* > image.tar # Reassemble the tar file
+    - cat image.tar.part-* > image.tar
     - docker load -i image.tar
-    - docker compose -f docker-compose.renesas.dev.yaml up --force-recreate -d
+    - docker compose -f $COMPOSE_FILE up --force-recreate -d
     - docker system prune -af
+
+deploy_production:
+  extends: .deploy_base
+  variables:
+    COMPOSE_FILE: docker-compose.renesas.yaml
+  before_script:
+    - cp $SSL_CRT ./ssl/nginx.crt
+    - cp $SSL_KEY ./ssl/nginx.key
+  rules:
+    - if: '$SOURCE_TRIGGER == "request_deploy_production"'
+
+deploy_development:
+  extends: .deploy_base
+  variables:
+    COMPOSE_FILE: docker-compose.renesas.dev.yaml
   rules:
     - if: '$SOURCE_TRIGGER == "request_deploy_development"'
