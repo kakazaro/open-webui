@@ -25,7 +25,7 @@ build_image:
   rules:
     - if: $CI_COMMIT_TAG =~ /^r.*/
 
-.deploy_base:
+.deploy_template: &deploy_template
   stage: deploy
   tags:
     - linux
@@ -36,16 +36,53 @@ build_image:
   script:
     - export DATABRICKS_CLIENT_ID=$DATABRICKS_CLIENT_ID
     - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
-#    - curl --location --output artifacts.zip --url "https://jc.gitlab.renesasworkbench.com/api/v4/projects/$CI_PROJECT_ID/jobs/$TARGET_JOB_ID/artifacts?job_token=$CI_JOB_TOKEN"
-#    - unzip -o "artifacts.zip" -d "./"
-#    - cat image.tar.part-* > image.tar
-#    - docker load -i image.tar
+    # Function to check and load image
+    - |
+      check_and_load_image() {
+        local image_full_name="${IMAGE_NAME}:${VERSION_TAG}"
+      
+        if docker image inspect "$image_full_name" >/dev/null 2>&1; then
+          echo "✅ Image $image_full_name already exists locally"
+          return 0
+        fi
+      
+        echo "📥 Image $image_full_name not found, downloading artifacts..."
+      
+        if ! curl --fail --location --output artifacts.zip --url "https://jc.gitlab.renesasworkbench.com/api/v4/projects/$CI_PROJECT_ID/jobs/$TARGET_JOB_ID/artifacts?job_token=$CI_JOB_TOKEN"; then
+          echo "❌ Failed to download artifacts"
+          return 1
+        fi
+      
+        echo "📦 Extracting and loading image..."
+        unzip -o "artifacts.zip" -d "./"
+        cat image.tar.part-* > image.tar
+      
+        if docker load -i image.tar; then
+          echo "✅ Image loaded successfully"
+          # Verify the loaded image has the expected tag
+          if docker image inspect "$image_full_name" >/dev/null 2>&1; then
+            echo "✅ Verified image $image_full_name is available"
+          else
+            echo "⚠️  Warning: Expected image tag $image_full_name not found after loading"
+            docker images | grep "$IMAGE_NAME" || echo "No images found for $IMAGE_NAME"
+          fi
+        else
+          echo "❌ Failed to load image"
+          return 1
+        fi
+      
+        # Clean up
+        rm -f artifacts.zip image.tar image.tar.part-*
+      }
+    - check_and_load_image
     - docker compose -f $COMPOSE_FILE up --force-recreate -d
-#    - docker system prune -af
+    - docker system prune -af
 
+# Rest remains the same...
 deploy_production:
-  extends: .deploy_base
+  <<: *deploy_template
   variables:
+    VERSION_TAG: ${VERSION_TAG}
     COMPOSE_FILE: docker-compose.renesas.yaml
   before_script:
     - cp $SSL_CRT ./ssl/nginx.crt
@@ -54,8 +91,9 @@ deploy_production:
     - if: '$SOURCE_TRIGGER == "request_deploy_production"'
 
 deploy_development:
-  extends: .deploy_base
+  <<: *deploy_template
   variables:
+    VERSION_TAG: ${VERSION_TAG}
     COMPOSE_FILE: docker-compose.renesas.dev.yaml
   rules:
     - if: '$SOURCE_TRIGGER == "request_deploy_development"'
