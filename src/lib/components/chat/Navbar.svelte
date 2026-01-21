@@ -24,6 +24,7 @@
 	import Bug from '../icons/Bug.svelte';
 	import BookManual from '../icons/BookManual.svelte';
 	import ApiIcon from '../icons/Api.svelte';
+	import UTIcon from '../icons/UT.svelte';
 	import ShareChatModal from '../chat/ShareChatModal.svelte';
 	import ModelSelector from '../chat/ModelSelector.svelte';
 	import Tooltip from '../common/Tooltip.svelte';
@@ -191,10 +192,25 @@
 						</Tooltip>
 					{/if}
 
+					{#if $feedbackReportSettings.utUrl}
+						<Tooltip content={$i18n.t('UT Generator')}>
+							<button
+								class=" md:flex hidden cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
+								on:click={() => {
+								window.open($feedbackReportSettings.utUrl, '_blank');
+							}}
+								aria-label="UT Generator"
+							>
+								<div class=" m-auto self-center">
+									<UTIcon className=" size-5" strokeWidth="0.5" />
+								</div>
+							</button>
+						</Tooltip>
+					{/if}
 					{#if $feedbackReportSettings.apiUrl}
 						<Tooltip content={$i18n.t('API Reference')}>
 							<button
-								class=" flex cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
+								class=" md:flex hidden cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
 								on:click={() => {
 								window.open($feedbackReportSettings.apiUrl, '_blank');
 							}}
@@ -209,7 +225,7 @@
 					{#if $feedbackReportSettings.manualUrl}
 						<Tooltip content={$i18n.t('User Manual')}>
 							<button
-								class=" flex cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
+								class=" md:flex hidden cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
 								on:click={() => {
 								window.open($feedbackReportSettings.manualUrl, '_blank');
 							}}
@@ -224,7 +240,7 @@
 					{#if $feedbackReportSettings.url}
 						<Tooltip content={$i18n.t('Report Bug')}>
 							<button
-								class=" flex cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
+								class=" md:flex hidden cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
 								on:click={() => {
 									window.open($feedbackReportSettings.url, '_blank');
 								}}
