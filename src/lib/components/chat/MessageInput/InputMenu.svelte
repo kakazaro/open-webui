@@ -4,7 +4,7 @@
 	import { fly } from 'svelte/transition';
 	import { flyAndScale } from '$lib/utils/transitions';
 
-	import { config, user, tools as _tools, mobile, knowledge, chats } from '$lib/stores';
+	import { config, user, tools as _tools, mobile, knowledge } from '$lib/stores';
 	import { getKnowledgeBases } from '$lib/apis/knowledge';
 
 	import { createPicker } from '$lib/utils/google-drive-picker';
@@ -277,22 +277,22 @@
 					{/if}
 
 					<!-- TODO: Renesas disable -->
-					{#if ($chats ?? []).length > 0 && false}
+					{#if false}
 						<Tooltip
 							content={fileUploadCapableModels.length !== selectedModels.length
-								? $i18n.t('Model(s) do not support file upload')
-								: !fileUploadEnabled
-									? $i18n.t('You do not have permission to upload files.')
-									: ''}
+							? $i18n.t('Model(s) do not support file upload')
+							: !fileUploadEnabled
+								? $i18n.t('You do not have permission to upload files.')
+								: ''}
 							className="w-full"
 						>
 							<button
 								class="flex gap-2 w-full items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl {!fileUploadEnabled
-									? 'opacity-50'
-									: ''}"
+								? 'opacity-50'
+								: ''}"
 								on:click={() => {
-									tab = 'chats';
-								}}
+								tab = 'chats';
+							}}
 							>
 								<ClockRotateRight />
 
