@@ -99,6 +99,11 @@ deploy_development:
     - if: '$SOURCE_TRIGGER == "request_deploy_development"'
 
 stop_development:
+  stage: deploy
+  tags:
+    - linux
+    - deploy
+    - web
   script:
     - docker stop open-webui-dev
   rules:
