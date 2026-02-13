@@ -97,3 +97,9 @@ deploy_development:
     COMPOSE_FILE: docker-compose.renesas.dev.yaml
   rules:
     - if: '$SOURCE_TRIGGER == "request_deploy_development"'
+
+stop_development:
+  script:
+    - docker stop open-webui-dev
+  rules:
+    - if: '$SOURCE_TRIGGER == "request_stop_development"'
