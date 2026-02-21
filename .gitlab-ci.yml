@@ -116,6 +116,6 @@ stop_production:
     - deploy
     - web
   script:
-    - docker stop open-webui-dev
+    - docker stop open-webui
   rules:
     - if: '$SOURCE_TRIGGER == "request_stop_production"'
