@@ -108,3 +108,14 @@ stop_development:
     - docker stop open-webui-dev
   rules:
     - if: '$SOURCE_TRIGGER == "request_stop_development"'
+
+stop_production:
+  stage: deploy
+  tags:
+    - linux
+    - deploy
+    - web
+  script:
+    - docker stop open-webui-dev
+  rules:
+    - if: '$SOURCE_TRIGGER == "request_stop_production"'
