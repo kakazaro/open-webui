@@ -214,6 +214,7 @@ type Settings = {
 	splitLargeDeltas?: boolean;
 	chatDirection?: 'LTR' | 'RTL' | 'auto';
 	ctrlEnterToSend?: boolean;
+	renderMarkdownInPreviews?: boolean;
 
 	system?: string;
 	seed?: number;
