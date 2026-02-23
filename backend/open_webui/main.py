@@ -1603,6 +1603,21 @@ async def get_base_models(request: Request, user=Depends(get_admin_user)):
 
 
 ##################################
+# Open Responses
+##################################
+
+
+@app.post("/api/responses")
+@app.post("/api/v1/responses")  # TODO: Renesas
+async def open_responses(
+        request: Request,
+        form_data: openai.ResponsesForm,
+        user=Depends(get_verified_user),
+):
+    return await openai.responses(request, form_data, user)
+
+
+##################################
 # Embeddings
 ##################################
 
