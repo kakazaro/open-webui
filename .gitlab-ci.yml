@@ -14,7 +14,7 @@ build_image:
     - shell
   script:
     - $JSON_VERSION = $(node -p "require('./package.json').version")
-    - echo "Package version $JSON_VERSION"
+    - echo "Package version $JSON_VERSION (dockerhub)"
     - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${VERSION_TAG} .
     - docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
     - docker push ${IMAGE_NAME}:${IMAGE_TAG}
