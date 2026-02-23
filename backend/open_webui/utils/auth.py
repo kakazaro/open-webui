@@ -287,6 +287,10 @@ async def get_current_user(
     if auth_token is not None:
         token = auth_token.credentials
 
+    # TODO: Renesas improve, Fallback: x-api-key header (Anthropic-style auth)
+    if token is None:
+        token = request.headers.get("x-api-key")
+
     if token is None and "token" in request.cookies:
         token = request.cookies.get("token")
 

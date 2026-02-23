@@ -32,6 +32,7 @@ from fastapi import (
     Form,
     HTTPException,
     Request,
+    Header,
     UploadFile,
     status,
     applications,
@@ -113,6 +114,7 @@ from open_webui.models.functions import Functions
 from open_webui.models.models import Models
 from open_webui.models.users import UserModel, Users
 from open_webui.models.chats import Chats
+from open_webui.models.authropic_messages import MessagesForm, messages_handler
 
 from open_webui.config import (
     # Ollama
@@ -1615,6 +1617,23 @@ async def open_responses(
         user=Depends(get_verified_user),
 ):
     return await openai.responses(request, form_data, user)
+
+
+##################################
+# Authropic Messages
+##################################
+
+
+@app.post("/api/messages")
+@app.post("/api/v1/messages")  # TODO: Renesas
+async def authropic_messages(
+        request: Request,
+        form_data: MessagesForm,
+        x_api_key: Optional[str] = Header(None, alias="x-api-key"),
+        authorization: Optional[str] = Header(None),
+        user=Depends(get_verified_user),
+):
+    return await messages_handler(request, form_data, x_api_key, authorization, user, chat_completion)
 
 
 ##################################
