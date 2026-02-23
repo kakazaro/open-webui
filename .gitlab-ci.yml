@@ -3,7 +3,7 @@ stages:
   - deploy
 
 variables:
-  IMAGE_NAME: r-open-webui
+  IMAGE_NAME: kakazaro/r-open-webui
 
 build_image:
   stage: build
@@ -16,12 +16,9 @@ build_image:
     - $JSON_VERSION = $(node -p "require('./package.json').version")
     - echo "Package version $JSON_VERSION"
     - docker build -f Dockerfile.renesas -t ${IMAGE_NAME}:${VERSION_TAG} .
-    - docker save -o image.tar ${IMAGE_NAME}:${VERSION_TAG}
+    - docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+    - docker push ${IMAGE_NAME}:${IMAGE_TAG}
     - docker rmi ${IMAGE_NAME}:${VERSION_TAG}
-    - bash -c "split -b 200000000 image.tar image.tar.part-" # Split the tar file into 200MB parts
-  artifacts:
-    paths:
-      - image.tar.part-* # Upload all the parts as artifacts
   rules:
     - if: $CI_COMMIT_TAG =~ /^r.*/
 
@@ -48,31 +45,19 @@ build_image:
       
         echo "📥 Image $image_full_name not found, downloading artifacts..."
       
-        if ! curl --fail --location --output artifacts.zip --url "https://jc.gitlab.renesasworkbench.com/api/v4/projects/$CI_PROJECT_ID/jobs/$TARGET_JOB_ID/artifacts?job_token=$CI_JOB_TOKEN"; then
-          echo "❌ Failed to download artifacts"
+        if ! docker pull "$image_full_name"; then
+          echo "❌ Failed to pull image"
           return 1
         fi
       
-        echo "📦 Extracting and loading image..."
-        unzip -o "artifacts.zip" -d "./"
-        cat image.tar.part-* > image.tar
-      
-        if docker load -i image.tar; then
-          echo "✅ Image loaded successfully"
-          # Verify the loaded image has the expected tag
-          if docker image inspect "$image_full_name" >/dev/null 2>&1; then
-            echo "✅ Verified image $image_full_name is available"
-          else
-            echo "⚠️  Warning: Expected image tag $image_full_name not found after loading"
-            docker images | grep "$IMAGE_NAME" || echo "No images found for $IMAGE_NAME"
-          fi
+        echo "✅ Image loaded successfully"
+        # Verify the loaded image has the expected tag
+        if docker image inspect "$image_full_name" >/dev/null 2>&1; then
+          echo "✅ Verified image $image_full_name is available"
         else
-          echo "❌ Failed to load image"
-          return 1
+          echo "⚠️  Warning: Expected image tag $image_full_name not found after loading"
+          docker images | grep "$IMAGE_NAME" || echo "No images found for $IMAGE_NAME"
         fi
-      
-        # Clean up
-        rm -f artifacts.zip image.tar image.tar.part-*
       }
     - check_and_load_image
     - docker compose -f $COMPOSE_FILE up --force-recreate -d
@@ -98,24 +83,25 @@ deploy_development:
   rules:
     - if: '$SOURCE_TRIGGER == "request_deploy_development"'
 
-stop_development:
+.stop_template: &stop_template
   stage: deploy
   tags:
     - linux
     - deploy
     - web
   script:
-    - docker stop open-webui-dev
+    - docker compose -f $COMPOSE_FILE stop
+
+stop_development:
+  <<: *stop_template
+  variables:
+    COMPOSE_FILE: docker-compose.renesas.dev.yaml
   rules:
     - if: '$SOURCE_TRIGGER == "request_stop_development"'
 
 stop_production:
-  stage: deploy
-  tags:
-    - linux
-    - deploy
-    - web
-  script:
-    - docker stop open-webui
+  <<: *stop_template
+  variables:
+    COMPOSE_FILE: docker-compose.renesas.yaml
   rules:
     - if: '$SOURCE_TRIGGER == "request_stop_production"'
