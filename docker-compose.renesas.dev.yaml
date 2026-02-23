@@ -12,6 +12,7 @@ services:
       - 'DATABRICKS_CLIENT_ID=${DATABRICKS_CLIENT_ID}'
       - 'DATABRICKS_CLIENT_SECRET=${DATABRICKS_CLIENT_SECRET}'
       - 'VERSION_TAG=${VERSION_TAG}'
+      - 'GLOBAL_LOG_LEVEL=ERROR'
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped

@@ -88,86 +88,87 @@ def upgrade() -> None:
         sa.column("updated_at", sa.BigInteger()),
     )
 
+    # TODO: Renesas improve skip chat messages table migration
     # Fetch all chats (excluding shared chats which have user_id starting with 'shared-')
-    chats = conn.execute(
-        sa.select(chat_table.c.id, chat_table.c.user_id, chat_table.c.chat).where(
-            ~chat_table.c.user_id.like("shared-%")
-        )
-    ).fetchall()
-
-    now = int(time.time())
-    messages_inserted = 0
-    messages_failed = 0
-
-    for chat_row in chats:
-        chat_id = chat_row[0]
-        user_id = chat_row[1]
-        chat_data = chat_row[2]
-
-        if not chat_data:
-            continue
-
-        # Handle both string and dict chat data
-        if isinstance(chat_data, str):
-            try:
-                chat_data = json.loads(chat_data)
-            except Exception:
-                continue
-
-        history = chat_data.get("history", {})
-        messages = history.get("messages", {})
-
-        for message_id, message in messages.items():
-            if not isinstance(message, dict):
-                continue
-
-            role = message.get("role")
-            if not role:
-                continue
-
-            timestamp = message.get("timestamp", now)
-
-            # Normalize timestamp: convert ms to seconds, validate range
-            if timestamp > 10_000_000_000:
-                timestamp = timestamp // 1000
-            # Must be after 2020 and not too far in the future
-            if timestamp < 1577836800 or timestamp > now + 86400:
-                timestamp = now
-
-            # Use savepoint to allow individual insert failures without aborting transaction
-            savepoint = conn.begin_nested()
-            try:
-                conn.execute(
-                    sa.insert(chat_message_table).values(
-                        id=f"{chat_id}-{message_id}",
-                        chat_id=chat_id,
-                        user_id=user_id,
-                        role=role,
-                        parent_id=message.get("parentId"),
-                        content=message.get("content"),
-                        output=message.get("output"),
-                        model_id=message.get("model"),
-                        files=message.get("files"),
-                        sources=message.get("sources"),
-                        embeds=message.get("embeds"),
-                        done=message.get("done", True),
-                        status_history=message.get("statusHistory"),
-                        error=message.get("error"),
-                        created_at=timestamp,
-                        updated_at=timestamp,
-                    )
-                )
-                savepoint.commit()
-                messages_inserted += 1
-            except Exception as e:
-                savepoint.rollback()
-                messages_failed += 1
-                log.warning(f"Failed to insert message {message_id}: {e}")
-                continue
-
-    log.info(
-        f"Backfilled {messages_inserted} messages into chat_message table ({messages_failed} failed)"
-    )
+    # chats = conn.execute(
+    #     sa.select(chat_table.c.id, chat_table.c.user_id, chat_table.c.chat).where(
+    #         ~chat_table.c.user_id.like("shared-%")
+    #     )
+    # ).fetchall()
+    #
+    # now = int(time.time())
+    # messages_inserted = 0
+    # messages_failed = 0
+    #
+    # for chat_row in chats:
+    #     chat_id = chat_row[0]
+    #     user_id = chat_row[1]
+    #     chat_data = chat_row[2]
+    #
+    #     if not chat_data:
+    #         continue
+    #
+    #     # Handle both string and dict chat data
+    #     if isinstance(chat_data, str):
+    #         try:
+    #             chat_data = json.loads(chat_data)
+    #         except Exception:
+    #             continue
+    #
+    #     history = chat_data.get("history", {})
+    #     messages = history.get("messages", {})
+    #
+    #     for message_id, message in messages.items():
+    #         if not isinstance(message, dict):
+    #             continue
+    #
+    #         role = message.get("role")
+    #         if not role:
+    #             continue
+    #
+    #         timestamp = message.get("timestamp", now)
+    #
+    #         # Normalize timestamp: convert ms to seconds, validate range
+    #         if timestamp > 10_000_000_000:
+    #             timestamp = timestamp // 1000
+    #         # Must be after 2020 and not too far in the future
+    #         if timestamp < 1577836800 or timestamp > now + 86400:
+    #             timestamp = now
+    #
+    #         # Use savepoint to allow individual insert failures without aborting transaction
+    #         savepoint = conn.begin_nested()
+    #         try:
+    #             conn.execute(
+    #                 sa.insert(chat_message_table).values(
+    #                     id=f"{chat_id}-{message_id}",
+    #                     chat_id=chat_id,
+    #                     user_id=user_id,
+    #                     role=role,
+    #                     parent_id=message.get("parentId"),
+    #                     content=message.get("content"),
+    #                     output=message.get("output"),
+    #                     model_id=message.get("model"),
+    #                     files=message.get("files"),
+    #                     sources=message.get("sources"),
+    #                     embeds=message.get("embeds"),
+    #                     done=message.get("done", True),
+    #                     status_history=message.get("statusHistory"),
+    #                     error=message.get("error"),
+    #                     created_at=timestamp,
+    #                     updated_at=timestamp,
+    #                 )
+    #             )
+    #             savepoint.commit()
+    #             messages_inserted += 1
+    #         except Exception as e:
+    #             savepoint.rollback()
+    #             messages_failed += 1
+    #             log.warning(f"Failed to insert message {message_id}: {e}")
+    #             continue
+    #
+    # log.info(
+    #     f"Backfilled {messages_inserted} messages into chat_message table ({messages_failed} failed)"
+    # )
 
 
 def downgrade() -> None:
