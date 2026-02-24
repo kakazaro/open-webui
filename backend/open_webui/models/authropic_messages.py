@@ -51,8 +51,20 @@ async def messages_handler(
         if not models or model_id not in models:
             await get_all_models(request, user=user)
             models = request.app.state.OPENAI_MODELS
+
+        # TODO renesas for model alias
+        if model_id not in models:
+            model_id2 = f'databricks-{model_id.replace(".", "-")}'
+            if model_id2 in models:
+                model_id = model_id2
+                form_data.model = model_id
+                payload = form_data.model_dump(exclude_none=True)
+                body = json.dumps(payload)
+
         if model_id in models:
             idx = models[model_id]["urlIdx"]
+        else:
+            raise HTTPException(404, "Model not found")
 
     url = request.app.state.config.OPENAI_API_BASE_URLS[idx]
     key = request.app.state.config.OPENAI_API_KEYS[idx]

@@ -1707,7 +1707,14 @@ async def chat_completion(
         model_info = None
         if not model_item.get("direct", False):
             if model_id not in request.app.state.MODELS:
-                raise Exception("Model not found")
+
+                # TODO renesas for model alias
+                model_id2 = f'databricks-{model_id.replace(".", "-")}'
+                if model_id2 in request.app.state.MODELS:
+                    model_id = model_id2
+                    form_data["model"] = model_id
+                else:
+                    raise Exception("Model not found")
 
             model = request.app.state.MODELS[model_id]
             model_info = Models.get_model_by_id(model_id)
