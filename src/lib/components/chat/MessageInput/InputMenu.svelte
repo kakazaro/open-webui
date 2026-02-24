@@ -56,6 +56,9 @@
 		fileUploadCapableModels.length === selectedModels.length &&
 		($user?.role === 'admin' || $user?.permissions?.chat?.file_upload);
 
+	let webUploadEnabled = true;
+	$: webUploadEnabled = $user?.role === 'admin' || ($user?.permissions?.chat?.web_upload ?? true);
+
 	$: if (!fileUploadEnabled && files.length > 0) {
 		files = [];
 	}
@@ -138,7 +141,7 @@
 						className="w-full"
 					>
 						<DropdownMenu.Item
-							class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl {!fileUploadEnabled
+							class="flex gap-2 items-center px-3 py-1.5 text-sm select-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl {!fileUploadEnabled
 								? 'opacity-50'
 								: ''}"
 							on:click={() => {
@@ -162,7 +165,7 @@
 						className="w-full"
 					>
 						<DropdownMenu.Item
-							class="flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50  rounded-xl {!fileUploadEnabled
+							class="flex gap-2 items-center px-3 py-1.5 text-sm select-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50  rounded-xl {!fileUploadEnabled
 								? 'opacity-50'
 								: ''}"
 							on:click={() => {
@@ -187,19 +190,17 @@
 					<!-- TODO: Renesas disable -->
 					{#if false}
 					<Tooltip
-						content={fileUploadCapableModels.length !== selectedModels.length
-							? $i18n.t('Model(s) do not support file upload')
-							: !fileUploadEnabled
-								? $i18n.t('You do not have permission to upload files.')
-								: ''}
+						content={!webUploadEnabled
+							? $i18n.t('You do not have permission to upload web content.')
+							: ''}
 						className="w-full"
 					>
 						<DropdownMenu.Item
-							class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl {!fileUploadEnabled
+							class="flex gap-2 items-center px-3 py-1.5 text-sm select-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl {!webUploadEnabled
 								? 'opacity-50'
 								: ''}"
 							on:click={() => {
-								if (fileUploadEnabled) {
+								if (webUploadEnabled) {
 									showAttachWebpageModal = true;
 								}
 							}}
@@ -221,7 +222,7 @@
 							className="w-full"
 						>
 							<button
-								class="flex gap-2 w-full items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl {!fileUploadEnabled
+								class="flex gap-2 w-full items-center px-3 py-1.5 text-sm select-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl {!fileUploadEnabled
 									? 'opacity-50'
 									: ''}"
 								on:click={() => {
@@ -312,7 +313,7 @@
 					{#if fileUploadEnabled}
 						{#if $config?.features?.enable_google_drive_integration}
 							<DropdownMenu.Item
-								class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl"
+								class="flex gap-2 items-center px-3 py-1.5 text-sm select-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl"
 								on:click={() => {
 									uploadGoogleDriveHandler();
 								}}
@@ -349,7 +350,7 @@
 
 						{#if $config?.features?.enable_onedrive_integration && ($config?.features?.enable_onedrive_personal || $config?.features?.enable_onedrive_business)}
 							<button
-								class="flex gap-2 w-full items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl {!fileUploadEnabled
+								class="flex gap-2 w-full items-center px-3 py-1.5 text-sm select-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl {!fileUploadEnabled
 									? 'opacity-50'
 									: ''}"
 								on:click={() => {
@@ -458,7 +459,7 @@
 			{:else if tab === 'knowledge'}
 				<div in:fly={{ x: 20, duration: 150 }}>
 					<button
-						class="flex w-full justify-between gap-2 items-center px-3 py-1.5 text-sm cursor-pointer rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50"
+						class="flex w-full justify-between gap-2 items-center px-3 py-1.5 text-sm select-none cursor-pointer rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50"
 						on:click={() => {
 							tab = '';
 						}}
@@ -477,7 +478,7 @@
 			{:else if tab === 'notes'}
 				<div in:fly={{ x: 20, duration: 150 }}>
 					<button
-						class="flex w-full justify-between gap-2 items-center px-3 py-1.5 text-sm cursor-pointer rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50"
+						class="flex w-full justify-between gap-2 items-center px-3 py-1.5 text-sm select-none cursor-pointer rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50"
 						on:click={() => {
 							tab = '';
 						}}
@@ -496,7 +497,7 @@
 			{:else if tab === 'chats'}
 				<div in:fly={{ x: 20, duration: 150 }}>
 					<button
-						class="flex w-full justify-between gap-2 items-center px-3 py-1.5 text-sm cursor-pointer rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50"
+						class="flex w-full justify-between gap-2 items-center px-3 py-1.5 text-sm select-none cursor-pointer rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50"
 						on:click={() => {
 							tab = '';
 						}}
@@ -515,7 +516,7 @@
 			{:else if tab === 'microsoft_onedrive'}
 				<div in:fly={{ x: 20, duration: 150 }}>
 					<button
-						class="flex w-full justify-between gap-2 items-center px-3 py-1.5 text-sm cursor-pointer rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50"
+						class="flex w-full justify-between gap-2 items-center px-3 py-1.5 text-sm select-none cursor-pointer rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50"
 						on:click={() => {
 							tab = '';
 						}}
@@ -531,7 +532,7 @@
 
 					{#if $config?.features?.enable_onedrive_personal}
 						<DropdownMenu.Item
-							class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl text-left"
+							class="flex gap-2 items-center px-3 py-1.5 text-sm select-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl text-left"
 							on:click={() => {
 								uploadOneDriveHandler('personal');
 							}}
@@ -544,7 +545,7 @@
 
 					{#if $config?.features?.enable_onedrive_business}
 						<DropdownMenu.Item
-							class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl text-left"
+							class="flex gap-2 items-center px-3 py-1.5 text-sm select-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl text-left"
 							on:click={() => {
 								uploadOneDriveHandler('organizations');
 							}}
