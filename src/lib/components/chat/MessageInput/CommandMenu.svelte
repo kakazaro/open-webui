@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
 	import { flyAndScale } from '$lib/utils/transitions';
-	import { prompts } from '$lib/stores';
 
 	import { CODING_COMMANDS } from '$lib/constants';
 
@@ -9,7 +8,7 @@
 	export let onChoose: Function;
 
 	// TODO: renesas
-	let commands = [...($prompts ?? []), ...CODING_COMMANDS];
+	let commands = [...CODING_COMMANDS];
 </script>
 
 <DropdownMenu.Root
