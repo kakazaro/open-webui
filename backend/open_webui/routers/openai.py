@@ -1103,6 +1103,10 @@ async def generate_chat_completion(
     # print(payload)
     # print(payload["messages"])
 
+    # TODO RENESAS improve for Gemini
+    if isinstance(model_id, str) and "gemini" in model_id:
+        payload.pop("stream_options", None)
+
     payload = json.dumps(payload)
 
     r = None
