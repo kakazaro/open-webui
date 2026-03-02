@@ -1050,3 +1050,16 @@ EXTERNAL_PWA_MANIFEST_URL = os.environ.get("EXTERNAL_PWA_MANIFEST_URL")
 WEBUI_LOG_URL = os.environ.get("WEBUI_LOG_URL", "")
 DATABRICKS_CLIENT_ID = os.environ.get("DATABRICKS_CLIENT_ID", "")
 DATABRICKS_CLIENT_SECRET = os.environ.get("DATABRICKS_CLIENT_SECRET", "")
+
+####################################
+# GROUP DEFAULTS
+####################################
+
+# Controls the default "Who can share to this group" setting for new groups.
+# Env var values: "true" (anyone), "false" (no one), "members" (only group members).
+_default_group_share = (
+    os.environ.get("DEFAULT_GROUP_SHARE_PERMISSION", "members").strip().lower()
+)
+DEFAULT_GROUP_SHARE_PERMISSION = (
+    "members" if _default_group_share == "members" else _default_group_share == "true"
+)

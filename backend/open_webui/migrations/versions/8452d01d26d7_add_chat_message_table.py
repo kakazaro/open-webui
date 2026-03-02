@@ -89,7 +89,7 @@ def upgrade() -> None:
     )
 
     # TODO: Renesas improve skip chat messages table migration
-    # Fetch all chats (excluding shared chats which have user_id starting with 'shared-')
+    # # Fetch all chats (excluding shared chats which have user_id starting with 'shared-')
     # chats = conn.execute(
     #     sa.select(chat_table.c.id, chat_table.c.user_id, chat_table.c.chat).where(
     #         ~chat_table.c.user_id.like("shared-%")
@@ -127,6 +127,11 @@ def upgrade() -> None:
     #             continue
     #
     #         timestamp = message.get("timestamp", now)
+    #
+    #         try:
+    #             timestamp = int(float(timestamp))
+    #         except Exception as e:
+    #             timestamp = now
     #
     #         # Normalize timestamp: convert ms to seconds, validate range
     #         if timestamp > 10_000_000_000:
