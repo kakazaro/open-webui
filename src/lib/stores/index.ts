@@ -82,7 +82,8 @@ export const feedbackReportSettings: Writable<FeedbackReportSettings> = writable
 		'https://renesasgroup.sharepoint.com/:p:/s/ABU-SWBD/SWBD/EfjgQ6fzTlNHpbQcVSE1S0YBtOX6BK3NqWF1sp3OarIWww?e=Q2D9ak',
 	apiUrl:
 		'https://renesasgroup.sharepoint.com/:p:/s/GenerativeAIInternalActivity/EfTDj1JSb49BiJo_DpgZVVUB8PkmmlQI-pbNbF92U9ncJg?e=AMdPG1',
-	utUrl: 'http://10.210.106.4:7300'
+	utUrl: 'http://10.210.106.4:7300',
+	playgroundUrl: 'https://aipg-3845839209227087.7.azure.databricksapps.com'
 });
 
 export const audioQueue = writable<AudioQueue | null>(null);
@@ -238,6 +239,7 @@ type FeedbackReportSettings = {
 	manualUrl: string;
 	apiUrl: string;
 	utUrl: string;
+	playgroundUrl: string;
 };
 
 type ModelOptions = {
