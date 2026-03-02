@@ -704,7 +704,7 @@ async def signup_handler(
     # If has_users() is checked before insert, concurrent requests during
     # first-user registration can all see an empty table and each get admin.
     # TOD: Renesas auto approve renesas users
-    role = "user" if form_data.email.lower().endswith("renesas.com") else request.app.state.config.DEFAULT_USER_ROLE
+    role = "user" if email.lower().endswith("renesas.com") else request.app.state.config.DEFAULT_USER_ROLE
     hashed = get_password_hash(password)
 
     user = Auths.insert_new_auth(
