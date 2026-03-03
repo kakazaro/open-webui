@@ -703,8 +703,6 @@ async def signup_handler(
     # Insert with default role first to avoid TOCTOU race on first signup.
     # If has_users() is checked before insert, concurrent requests during
     # first-user registration can all see an empty table and each get admin.
-    # TOD: Renesas auto approve renesas users
-    role = "user" if email.lower().endswith("renesas.com") else request.app.state.config.DEFAULT_USER_ROLE
     hashed = get_password_hash(password)
 
     user = Auths.insert_new_auth(
@@ -712,7 +710,7 @@ async def signup_handler(
         password=hashed,
         name=name,
         profile_image_url=profile_image_url,
-        role=role,
+        role=request.app.state.config.DEFAULT_USER_ROLE,
         db=db,
     )
     if not user:
