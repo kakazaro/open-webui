@@ -50,6 +50,7 @@ def stdout_format(record: "Record") -> str:
 
 
 log_queue = queue.Queue()
+api_log_queue = queue.Queue()
 
 
 def log_worker():
@@ -70,6 +71,29 @@ def log_worker():
         # print(f"Failed to post renesas log: {e}")
         finally:
             log_queue.task_done()
+
+
+def api_log_worker():
+    while True:
+        try:
+            log_data = api_log_queue.get()
+            if log_data is None:
+                break  # Optional exit logic
+            r = requests.post(
+                f"{WEBUI_LOG_URL}/logger/api-log",
+                headers={"Content-Type": "application/json"},
+                json=log_data,
+            )
+            r.raise_for_status()
+        except:
+            pass
+        finally:
+            api_log_queue.task_done()
+
+
+def enqueue_api_log(log_data: dict):
+    if WEBUI_LOG_URL:
+        api_log_queue.put(log_data)
 
 
 def _json_sink(message: "Message") -> None:
@@ -231,6 +255,7 @@ def start_logger():
     if WEBUI_LOG_URL:
         # Start worker thread
         threading.Thread(target=log_worker, daemon=True).start()
+        threading.Thread(target=api_log_worker, daemon=True).start()
         print(f'Renesas log at {WEBUI_LOG_URL}')
 
     logger.info(f"GLOBAL_LOG_LEVEL: {GLOBAL_LOG_LEVEL}")

@@ -59,7 +59,7 @@ from starsessions.stores.redis import RedisStore
 
 from open_webui.utils import logger
 from open_webui.utils.audit import AuditLevel, AuditLoggingMiddleware
-from open_webui.utils.logger import start_logger
+from open_webui.utils.logger import enqueue_api_log, start_logger
 from open_webui.socket.main import (
     MODELS,
     app as socket_app,
@@ -535,6 +535,7 @@ from open_webui.utils.auth import (
     get_license_data,
     get_http_authorization_cred,
     decode_token,
+    get_current_user,
     get_admin_user,
     get_verified_user,
     create_admin_user,
@@ -1443,6 +1444,51 @@ class APIKeyRestrictionMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(APIKeyRestrictionMiddleware)
+
+
+@app.middleware("http")
+async def custom_request_logger(request: Request, call_next):
+    start_time = time.perf_counter()
+    response = None
+
+    try:
+        response = await call_next(request)
+    finally:
+        path = request.url.path
+        if any(target in path for target in ("chat/completions", "api/messages", "api/responses")):
+            duration_ms = (time.perf_counter() - start_time) * 1000
+            status_code = response.status_code if response is not None else 500
+            client_ip = request.client.host if request.client else "-"
+            try:
+                user = await get_current_user(
+                    request=request,
+                    response=Response(),
+                    background_tasks=BackgroundTasks(),
+                    auth_token=None,
+                )
+            except Exception:
+                user = None
+            if user is not None:
+                user_id = getattr(user, "id", None) or "-"
+                user_email = getattr(user, "email", None) or "-"
+
+                enqueue_api_log(
+                    {
+                        "method": request.method,
+                        "path": path,
+                        "status": status_code,
+                        "user_id": user_id,
+                        "user_email": user_email,
+                        "ip": client_ip,
+                        "duration_ms": round(duration_ms, 2),
+                    }
+                )
+                # print(
+                #     f"[API LOG] method={request.method} path={path} "
+                #     f"status={status_code} user_id={user_id} user_email={user_email} "
+                #     f"ip={client_ip} duration_ms={duration_ms:.2f}"
+                # )
+    return response
 
 
 @app.middleware("http")
