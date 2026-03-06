@@ -62,8 +62,16 @@ async def generate_embeddings(
 
     model_id = form_data.get("model")
     if model_id not in models:
-        raise Exception("Model not found")
+        # TODO renesas for model alias
+        model_id2 = f'databricks-{model_id.replace(".", "-")}'
+        if model_id2 in models:
+            model_id = model_id2
+            form_data["model"] = model_id
+        else:
+            raise Exception("Model not found")
     model = models[model_id]
+    # TODO renesas for logs model usage
+    request.state.logs_model = model_id
 
     # Access filtering
     if not getattr(request.state, "direct", False):

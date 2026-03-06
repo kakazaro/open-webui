@@ -65,6 +65,8 @@ async def messages_handler(
             idx = models[model_id]["urlIdx"]
         else:
             raise HTTPException(404, "Model not found")
+    # TODO renesas for logs model usage
+    request.state.logs_model = model_id
 
     url = request.app.state.config.OPENAI_API_BASE_URLS[idx]
     key = request.app.state.config.OPENAI_API_KEYS[idx]

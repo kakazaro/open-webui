@@ -535,7 +535,6 @@ from open_webui.utils.auth import (
     get_license_data,
     get_http_authorization_cred,
     decode_token,
-    get_current_user,
     get_admin_user,
     get_verified_user,
     create_admin_user,
@@ -1446,28 +1445,46 @@ class APIKeyRestrictionMiddleware(BaseHTTPMiddleware):
 app.add_middleware(APIKeyRestrictionMiddleware)
 
 
+# TODO renesas, inspect AI API for log usage
 @app.middleware("http")
 async def custom_request_logger(request: Request, call_next):
     start_time = time.perf_counter()
     response = None
+    path = request.url.path
+    has_background_tasks = False
+    if "application/json" in request.headers.get("content-type", "").lower():
+        try:
+            request_body = await request.json()
+            has_background_tasks = (
+                isinstance(request_body, dict) and "background_tasks" in request_body
+            )
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            has_background_tasks = False
+
+    request.state.api_ai_call = (
+        any(
+            target in path
+            for target in (
+                "chat/completions",
+                "api/messages",
+                "api/v1/messages",
+                "api/responses",
+                "api/v1/responses",
+                "api/embeddings",
+                "api/v1/embeddings",
+            )
+        )
+        and not has_background_tasks
+    )
 
     try:
         response = await call_next(request)
     finally:
-        path = request.url.path
-        if any(target in path for target in ("chat/completions", "api/messages", "api/responses")):
+        if request.state.api_ai_call:
             duration_ms = (time.perf_counter() - start_time) * 1000
             status_code = response.status_code if response is not None else 500
             client_ip = request.client.host if request.client else "-"
-            try:
-                user = await get_current_user(
-                    request=request,
-                    response=Response(),
-                    background_tasks=BackgroundTasks(),
-                    auth_token=None,
-                )
-            except Exception:
-                user = None
+            user = request.state.user_logs
             if user is not None:
                 user_id = getattr(user, "id", None) or "-"
                 user_email = getattr(user, "email", None) or "-"
@@ -1796,6 +1813,9 @@ async def chat_completion(
 
             request.state.direct = True
             request.state.model = model
+
+        # TODO renesas for logs model usage
+        request.state.logs_model = model_id
 
         # Model params: global defaults as base, per-model overrides win
         default_model_params = (
