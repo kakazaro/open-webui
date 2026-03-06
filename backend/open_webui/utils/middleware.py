@@ -2713,26 +2713,26 @@ async def process_chat_payload(request, form_data, user, metadata, model):
                 except Exception as e:
                     log.exception(e)
 
-    # Check if file context extraction is enabled for this model (default True)
-    file_context_enabled = (
-        model.get("info", {}).get("meta", {}).get("capabilities") or {}
-    ).get("file_context", True)
+    # TODO renesas: Remove for improve file handler
+    # # Check if file context extraction is enabled for this model (default True)
+    # file_context_enabled = (
+    #     model.get("info", {}).get("meta", {}).get("capabilities") or {}
+    # ).get("file_context", True)
+    #
+    # if file_context_enabled:
+    #     try:
+    #         form_data, flags = await chat_completion_files_handler(
+    #             request, form_data, extra_params, user
+    #         )
+    #         sources.extend(flags.get("sources", []))
+    #     except Exception as e:
+    #         log.exception(e)
 
-    if file_context_enabled:
-        try:
-            form_data, flags = await chat_completion_files_handler(
-                request, form_data, extra_params, user
-            )
-            sources.extend(flags.get("sources", []))
-        except Exception as e:
-            log.exception(e)
-
-    # TODO: renesas improve
     # If context is not empty, insert it into the messages
-    # if sources and prompt:
-    #     form_data["messages"] = apply_source_context_to_messages(
-    #         request, form_data["messages"], sources, prompt
-    #     )
+    if sources and prompt:
+        form_data["messages"] = apply_source_context_to_messages(
+            request, form_data["messages"], sources, prompt
+        )
 
     # If there are citations, add them to the data_items
     sources = [
@@ -2765,6 +2765,12 @@ async def process_chat_payload(request, form_data, user, metadata, model):
     # print(json.dumps(metadata))
     attach_file_in_payload(form_data, metadata)
     replace_command_in_payload(form_data)
+    # Guard against provider errors for empty string message content.
+    # If a message has string content, ensure it is never empty.
+    for message in form_data.get("messages", []):
+        content = message.get("content")
+        if isinstance(content, str) and content == "":
+            message["content"] = "-"
     # print('after form_data')
     # print(form_data["messages"])
     # print(json.dumps(form_data))
