@@ -1,6 +1,6 @@
 services:
   open-webui:
-    image: kakazaro/r-open-webui:${VERSION_TAG}
+    image: 10.210.106.4:5000/r-open-webui:${VERSION_TAG}
     container_name: open-webui
     volumes:
       - open-webui:/app/backend/data
