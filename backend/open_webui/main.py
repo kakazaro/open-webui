@@ -1529,7 +1529,6 @@ async def custom_request_logger(request: Request, call_next):
             return None
 
         model = await get_model_from_request(request)
-        print(f'model: {model}')
         def logs_api_call(usage: dict):
             duration_ms = (time.perf_counter() - start_time) * 1000
             status_code = response.status_code if response is not None else 500
