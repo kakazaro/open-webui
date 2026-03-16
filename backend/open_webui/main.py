@@ -59,7 +59,7 @@ from starsessions.stores.redis import RedisStore
 
 from open_webui.utils import logger
 from open_webui.utils.audit import AuditLevel, AuditLoggingMiddleware
-from open_webui.utils.logger import enqueue_api_log, start_logger
+from open_webui.utils.logger import enqueue_token_log, start_logger
 from open_webui.socket.main import (
     MODELS,
     app as socket_app,
@@ -1454,7 +1454,6 @@ app.add_middleware(APIKeyRestrictionMiddleware)
 # TODO renesas, inspect AI API for log usage
 @app.middleware("http")
 async def custom_request_logger(request: Request, call_next):
-    start_time = time.perf_counter()
     response = None
     path = request.url.path
     has_background_tasks = False
@@ -1530,32 +1529,29 @@ async def custom_request_logger(request: Request, call_next):
 
         model = await get_model_from_request(request)
         def logs_api_call(usage: dict):
-            duration_ms = (time.perf_counter() - start_time) * 1000
             status_code = response.status_code if response is not None else 500
-            client_ip = request.client.host if request.client else "-"
             user = request.state.user_logs
             if user is not None:
                 user_id = getattr(user, "id", None) or "-"
                 user_email = getattr(user, "email", None) or "-"
 
-                enqueue_api_log(
+                enqueue_token_log(
                     {
-                        "method": request.method,
-                        "path": path,
-                        "status": status_code,
+                        "input_tokens": usage["input_tokens"],
+                        "output_tokens": usage["output_tokens"],
+                        "total_tokens": usage["total_tokens"],
+                        "model": model,
                         "user_id": user_id,
                         "user_email": user_email,
-                        "model": model,
-                        "ip": client_ip,
-                        "usage": usage,
-                        "duration_ms": round(duration_ms, 2),
+                        "path": path,
+                        "status": status_code,
                     }
                 )
                 log.info(
-                    f"[API LOG] method={request.method} path={path} "
-                    f"status={status_code} user_id={user_id} user_email={user_email} model={model} "
-                    f"usage={usage} "
-                    f"ip={client_ip} duration_ms={duration_ms:.2f}"
+                    f"[Token API LOG] path={path} "
+                    f"status={status_code} user_id={user_id} user_email={user_email} "
+                    f"model={model} "
+                    f"usage={usage}"
                 )
 
         def find_usage(obj: Any) -> dict | None:
@@ -1585,7 +1581,8 @@ async def custom_request_logger(request: Request, call_next):
                     usage = normalize_usage(usage)
                     usage_tokens["input_tokens"] = max(usage["input_tokens"], usage_tokens["input_tokens"])
                     usage_tokens["output_tokens"] = max(usage["output_tokens"], usage_tokens["output_tokens"])
-                    usage_tokens["total_tokens"] = max(usage["total_tokens"], usage_tokens["total_tokens"])
+                    usage_tokens["total_tokens"] = max(max(usage["total_tokens"], usage_tokens["total_tokens"]),
+                                                       usage_tokens["input_tokens"] + usage_tokens["output_tokens"])
                     return usage_tokens
             except json.JSONDecodeError:
                 pass
@@ -1606,7 +1603,8 @@ async def custom_request_logger(request: Request, call_next):
                         usage = normalize_usage(usage)
                         usage_tokens["input_tokens"] = max(usage["input_tokens"], usage_tokens["input_tokens"])
                         usage_tokens["output_tokens"] = max(usage["output_tokens"], usage_tokens["output_tokens"])
-                        usage_tokens["total_tokens"] = max(usage["total_tokens"], usage_tokens["total_tokens"])
+                        usage_tokens["total_tokens"] = max(max(usage["total_tokens"], usage_tokens["total_tokens"]),
+                                                           usage_tokens["input_tokens"] + usage_tokens["output_tokens"])
                 except json.JSONDecodeError:
                     pass
             return usage_tokens
