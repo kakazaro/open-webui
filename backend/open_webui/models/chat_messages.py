@@ -136,6 +136,7 @@ class ChatMessageTable:
                     "uuid": uuid,
                     "user_id": user_id,
                     "user_email": user.email,
+                    "model": model,
                     "input_tokens": usage.get("input_tokens", 0),
                     "output_tokens": usage.get("output_tokens", 0),
                     "total_tokens": usage.get("total_tokens", 0),
