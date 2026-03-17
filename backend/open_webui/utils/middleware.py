@@ -3739,8 +3739,13 @@ async def streaming_chat_response_handler(response, ctx):
                             )
                             delta_count = 0
                             last_delta_data = None
-
+                    
+                    #debug_lines = 0
                     async for line in response.body_iterator:
+                        #if debug_lines < 30:
+                        #    log.warning(f"[stream_body_handler] raw_line={repr(line)}")
+                        #    debug_lines += 1
+
                         line = (
                             line.decode("utf-8", "replace")
                             if isinstance(line, bytes)
@@ -4326,6 +4331,28 @@ async def streaming_chat_response_handler(response, ctx):
                         else None
                     )
 
+                def build_follow_up_messages(form_data, output, truncate_tool_results=False):
+                        """Build messages for tool call follow-up, optionally truncating tool results."""
+                        MAX_TOOL_RESULT_CHARS = 4000
+                        
+                        converted = convert_output_to_messages(output, raw=True)
+                        
+                        if truncate_tool_results:
+                            for msg in converted:
+                                if msg.get("role") == "tool":
+                                    content = msg.get("content", "")
+                                    if isinstance(content, str) and len(content) > MAX_TOOL_RESULT_CHARS:
+                                        msg["content"] = content[:MAX_TOOL_RESULT_CHARS] + "\n...[truncated due to length]"
+                        
+                        messages = [*form_data["messages"], *converted]
+                        
+                        # Sanitize empty content
+                        for msg in messages:
+                            if isinstance(msg.get("content"), str) and msg["content"] == "":
+                                msg["content"] = None if msg.get("tool_calls") else "-"
+                        
+                        return messages
+
                 while (
                     len(tool_calls) > 0
                     and tool_call_retries < CHAT_RESPONSE_MAX_TOOL_CALL_RETRIES
@@ -4639,31 +4666,165 @@ async def streaming_chat_response_handler(response, ctx):
                         }
                     )
 
-                    try:
-                        new_form_data = {
-                            **form_data,
-                            "model": model_id,
-                            "stream": True,
-                            "messages": [
-                                *form_data["messages"],
-                                *convert_output_to_messages(output, raw=True),
-                            ],
-                        }
+                    
+                    MAX_RATE_LIMIT_RETRIES = 3
+                    RATE_LIMIT_BASE_DELAY = 2  # seconds
+                    rate_limit_retries = 0
+                    follow_up_success = False
 
+                    while rate_limit_retries <= MAX_RATE_LIMIT_RETRIES:
+                        try:
+                            # Tier 1: full payload (attempt 0,1)
+                            # Tier 2: truncate tool results (attempt 2+)
+                            truncate = (rate_limit_retries >= 2)
+
+                            new_form_data = {
+                                **form_data,
+                                "model": model_id,
+                                "stream": True,
+                                "messages": build_follow_up_messages(
+                                    form_data, output, truncate_tool_results=truncate
+                                ),
+                            }
+
+                            res = await generate_chat_completion(
+                                request,
+                                new_form_data,
+                                user,
+                                bypass_system_prompt=True,
+                            )
+
+                            if isinstance(res, StreamingResponse):
+                                await stream_body_handler(res, new_form_data)
+                                follow_up_success = True
+                                break  # success
+
+                            # Non-streaming: check error type
+                            _, res_data = get_response_data(res)
+                            error_code = (res_data or {}).get("error_code", "")
+                            is_rate_limit = (
+                                error_code == "REQUEST_LIMIT_EXCEEDED"
+                                or (res_data or {}).get("error", {}).get("code") == "rate_limit_exceeded"
+                                or (hasattr(res, "status_code") and res.status_code == 429)
+                            )
+
+                            if is_rate_limit and rate_limit_retries < MAX_RATE_LIMIT_RETRIES:
+                                delay = RATE_LIMIT_BASE_DELAY * (2 ** rate_limit_retries)
+                                log.warning(
+                                    f"Rate limit hit, retry {rate_limit_retries + 1}/{MAX_RATE_LIMIT_RETRIES} "
+                                    f"in {delay}s (truncate={truncate})"
+                                )
+                                await asyncio.sleep(delay)
+                                rate_limit_retries += 1
+                                continue  # retry
+
+                            # Non-rate-limit error or max retries exceeded → emit error and stop
+                            error_msg = (res_data or {}).get("message") or (res_data or {}).get("error")
+                            if error_msg:
+                                log.error(f"Tool call follow-up failed: {error_msg}")
+                                await event_emitter({
+                                    "type": "chat:message:error",
+                                    "data": {"error": {"content": str(error_msg)}},
+                                })
+                            break
+
+                        except Exception as e:
+                            log.debug(e)
+                            break
+                def render_tool_results_as_text(output: list, max_chars_per_item: int = 2000, max_items: int = 20) -> str:
+                    lines = []
+                    count = 0
+                    for item in output:
+                        if count >= max_items:
+                            break
+                        if item.get("type") == "function_call":
+                            name = item.get("name", "")
+                            args = item.get("arguments", "")
+                            lines.append(f"- tool_call: {name} args={args}")
+                        elif item.get("type") == "function_call_output":
+                            call_id = item.get("call_id", "")
+                            text = ""
+                            for part in item.get("output", []):
+                                if isinstance(part, dict) and "text" in part:
+                                    text += str(part.get("text", ""))
+                            text = text.strip()
+                            if len(text) > max_chars_per_item:
+                                text = text[:max_chars_per_item] + "\n...[truncated]"
+                            lines.append(f"  tool_output(call_id={call_id}): {text}")
+                            count += 1
+                    return "\n".join(lines).strip()
+
+                if tool_call_retries >= CHAT_RESPONSE_MAX_TOOL_CALL_RETRIES:
+                    log.warning(f"Max tool call retries reached ({CHAT_RESPONSE_MAX_TOOL_CALL_RETRIES}). Forcing final answer.")
+                    original_user = metadata.get("user_prompt") or get_last_user_message(form_data["messages"]) or ""
+                    tool_results_text = render_tool_results_as_text(output)
+                    # 1. Create system prompt notifications (System Prompt Injection)
+                    force_answer_message = {
+                        "role": "system",
+                        "content": "You have reached the maximum limit for tool calls. Please stop using tools and provide the best possible answer to the user based on the information you have gathered so far."
+                    }
+                                     
+                    final_messages = [
+                        force_answer_message,
+                        {"role": "user", "content": f"User question:\n{original_user}"},
+                        {"role": "user", "content": f"Tool results so far:\n{tool_results_text or '(no tool results)'}\n\nNow write the final answer."},
+                    ]
+                    
+                    new_form_data = {
+                        **form_data,
+                        "model": model_id,
+                        "stream": True,
+                        "messages": final_messages,
+                    }
+
+                    new_form_data.pop("tools", None)
+                    new_form_data.pop("tool_choice", None)
+                    #log.info(f"DEBUG: Force answer payload keys: {new_form_data.keys()}")
+                    #log.info(f"DEBUG: Force answer messages count: {len(new_form_data.get('messages', []))}")
+
+                    try:
                         res = await generate_chat_completion(
                             request,
                             new_form_data,
                             user,
                             bypass_system_prompt=True,
                         )
+                        # DEBUG: response type + headers
+                        log.warning(f"[force_answer] res_type={type(res)}")
+                        if hasattr(res, "status_code"):
+                            log.warning(f"[force_answer] status_code={res.status_code}")
+                        if hasattr(res, "headers"):
+                            log.warning(f"[force_answer] content_type={res.headers.get('content-type') or res.headers.get('Content-Type')}")
 
                         if isinstance(res, StreamingResponse):
                             await stream_body_handler(res, new_form_data)
+                            # Fallback: if after stream the output is still empty -> emit error
+                            if not output or (
+                                output[-1].get("type") == "message"
+                                and not (output[-1].get("content") or [{}])[-1].get("text", "").strip()
+                            ):
+                                log.error("[force_answer] streaming finished but no assistant text produced")
+                                await event_emitter({
+                                    "type": "chat:message:error",
+                                    "data": {"error": {"content": "Force-answer stream ended with no content. Check provider SSE format / tool-call loop."}},
+                                })
                         else:
-                            break
+                            # IMPORTANT: Handle error cases (not streaming) to display the UI
+                            _, res_data = get_response_data(res)
+                            error_msg = (res_data or {}).get("message") or (res_data or {}).get("error") or "Unknown error during forced answer generation"
+                            
+                            log.error(f"Force answer failed: {error_msg}")
+                            
+                            await event_emitter({
+                                "type": "chat:message:error",
+                                "data": {"error": {"content": f"System: Max tool calls reached, but failed to generate final answer. Error: {error_msg}"}},
+                            })
                     except Exception as e:
-                        log.debug(e)
-                        break
+                        log.error(f"Error forcing final answer: {e}")
+                        await event_emitter({
+                            "type": "chat:message:error",
+                            "data": {"error": {"content": f"System: Critical error forcing final answer: {str(e)}"}},
+                        })
 
                 if DETECT_CODE_INTERPRETER:
                     MAX_RETRIES = 5
@@ -4834,6 +4995,9 @@ async def streaming_chat_response_handler(response, ctx):
                                     *convert_output_to_messages(output, raw=True),
                                 ],
                             }
+                            # TODO: renesas logs payload
+                            log.info('tool calling payload 2:')
+                            log.info(new_form_data)
 
                             res = await generate_chat_completion(
                                 request,
@@ -4976,3 +5140,4 @@ async def process_chat_response(response, ctx):
 
     # Streaming response
     return await streaming_chat_response_handler(response, ctx)
+
