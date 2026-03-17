@@ -3739,13 +3739,8 @@ async def streaming_chat_response_handler(response, ctx):
                             )
                             delta_count = 0
                             last_delta_data = None
-                    
-                    #debug_lines = 0
-                    async for line in response.body_iterator:
-                        #if debug_lines < 30:
-                        #    log.warning(f"[stream_body_handler] raw_line={repr(line)}")
-                        #    debug_lines += 1
 
+                    async for line in response.body_iterator:
                         line = (
                             line.decode("utf-8", "replace")
                             if isinstance(line, bytes)
@@ -5140,4 +5135,3 @@ async def process_chat_response(response, ctx):
 
     # Streaming response
     return await streaming_chat_response_handler(response, ctx)
-
