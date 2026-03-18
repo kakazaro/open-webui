@@ -1527,7 +1527,12 @@ async def custom_request_logger(request: Request, call_next):
 
             return None
 
-        model = await get_model_from_request(request)
+        model = ""
+        if hasattr(request.state, "logs_model"):
+            model = request.state.logs_model
+        else:
+            model = await get_model_from_request(request)
+
         def logs_api_call(usage: dict):
             status_code = response.status_code if response is not None else 500
             user = request.state.user_logs
