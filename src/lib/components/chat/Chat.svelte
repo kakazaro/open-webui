@@ -297,7 +297,6 @@
 	};
 
 	const resetInput = () => {
-		selectedToolIds = [];
 		selectedFilterIds = [];
 		webSearchEnabled = false;
 		imageGenerationEnabled = false;
