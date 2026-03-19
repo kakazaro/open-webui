@@ -8,9 +8,11 @@ import json
 
 from starlette.responses import PlainTextResponse
 
-from open_webui.env import AIOHTTP_CLIENT_TIMEOUT, AIOHTTP_CLIENT_SESSION_SSL
+from open_webui.config import BYPASS_ADMIN_ACCESS_CONTROL
+from open_webui.env import AIOHTTP_CLIENT_TIMEOUT, AIOHTTP_CLIENT_SESSION_SSL, BYPASS_MODEL_ACCESS_CONTROL
 from open_webui.routers.openai import get_all_models, get_headers_and_cookies
 from open_webui.utils.misc import stream_wrapper, cleanup_response
+from open_webui.utils.models import check_model_access
 
 log = logging.getLogger(__name__)
 
@@ -65,6 +67,16 @@ async def messages_handler(
             idx = models[model_id]["urlIdx"]
         else:
             raise HTTPException(404, "Model not found")
+
+        # Check if user has access to the model
+        if not BYPASS_MODEL_ACCESS_CONTROL and (
+                user.role != "admin" or not BYPASS_ADMIN_ACCESS_CONTROL
+        ):
+            try:
+                check_model_access(user, models[model_id])
+            except Exception:
+                raise HTTPException(404, "Model not found")
+
     # TODO renesas for logs model usage
     request.state.logs_model = model_id
 

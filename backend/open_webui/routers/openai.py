@@ -29,6 +29,7 @@ from open_webui.models.access_grants import AccessGrants
 from open_webui.models.groups import Groups
 from open_webui.config import (
     CACHE_DIR,
+    BYPASS_ADMIN_ACCESS_CONTROL,
 )
 from open_webui.env import (
     MODELS_CACHE_TTL,
@@ -44,6 +45,7 @@ from open_webui.models.users import UserModel
 from open_webui.constants import ERROR_MESSAGES
 
 from open_webui.utils.access_token_manager import AccessTokenManager
+from open_webui.utils.models import check_model_access
 
 from open_webui.utils.payload import (
     apply_model_params_to_body_openai,
@@ -1319,6 +1321,15 @@ async def responses(
             idx = models[model_id]["urlIdx"]
         else:
             raise HTTPException(404, "Model not found")
+
+        # Check if user has access to the model
+        if not BYPASS_MODEL_ACCESS_CONTROL and (
+                user.role != "admin" or not BYPASS_ADMIN_ACCESS_CONTROL
+        ):
+            try:
+                check_model_access(user, models[model_id])
+            except Exception:
+                raise HTTPException(404, "Model not found")
 
     # TODO renesas for logs model usage
     request.state.logs_model = model_id
