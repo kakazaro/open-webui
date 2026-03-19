@@ -115,6 +115,7 @@ from open_webui.models.models import Models
 from open_webui.models.users import UserModel, Users
 from open_webui.models.chats import Chats
 from open_webui.models.authropic_messages import MessagesForm, messages_handler
+from open_webui.models.gemini_api import GeminiForm, gemini_api_handler
 
 from open_webui.config import (
     # Ollama
@@ -1477,6 +1478,7 @@ async def custom_request_logger(request: Request, call_next):
                 "api/v1/responses",
                 "api/embeddings",
                 "api/v1/embeddings",
+                "api/v1beta/models"
             )
         )
         and not has_background_tasks
@@ -1564,6 +1566,10 @@ async def custom_request_logger(request: Request, call_next):
             if isinstance(obj, dict):
                 if "usage" in obj:
                     return obj["usage"]
+                if "usageMetadata" in obj:
+                    return obj["usageMetadata"]
+                if "amazon-bedrock-invocationMetrics" in obj:
+                    return obj["amazon-bedrock-invocationMetrics"]
                 for value in obj.values():
                     result = find_usage(value)
                     if result is not None:
@@ -1936,6 +1942,22 @@ async def authropic_messages(
         user=Depends(get_verified_user),
 ):
     return await messages_handler(request, form_data, user)
+
+
+##################################
+# Gemini API
+##################################
+
+
+@app.post("/api/v1beta/models/{model_id}:{action_id}")  # TODO: Renesas
+async def gemini_api(
+        request: Request,
+        model_id: str,
+        action_id: str,
+        form_data: GeminiForm,
+        user=Depends(get_verified_user),
+):
+    return await gemini_api_handler(request, model_id, action_id, form_data, user)
 
 
 ##################################
