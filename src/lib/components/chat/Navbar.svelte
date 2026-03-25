@@ -21,7 +21,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 
-	import Bug from '../icons/Bug.svelte';
+	import Monitoring from '../icons/Monitoring.svelte';
 	import BookManual from '../icons/BookManual.svelte';
 	import ApiIcon from '../icons/Api.svelte';
 	import UTIcon from '../icons/UT.svelte';
@@ -254,16 +254,16 @@
 						</Tooltip>
 					{/if}
 					{#if $feedbackReportSettings.url}
-						<Tooltip content={$i18n.t('Report Bug')}>
+						<Tooltip content={$i18n.t('Monitor')}>
 							<button
 								class=" md:flex hidden cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
 								on:click={() => {
 									window.open($feedbackReportSettings.url, '_blank');
 								}}
-								aria-label="Report Bug"
+								aria-label="Monitor"
 							>
 								<div class=" m-auto self-center">
-									<Bug className=" size-5" strokeWidth="0.5" />
+									<Monitoring className=" size-5" strokeWidth="0.5" />
 								</div>
 							</button>
 						</Tooltip>
