@@ -4,7 +4,7 @@
 
 	import { getAdminDetails } from '$lib/apis/auths';
 	import { onMount, tick, getContext } from 'svelte';
-	import { config } from '$lib/stores';
+	import { config, feedbackReportSettings } from '$lib/stores';
 
 	const i18n = getContext('i18n');
 
@@ -59,23 +59,45 @@
 					</div>
 				{/if}
 
-				<div class=" mt-6 mx-auto relative group w-fit">
+				<!--				TODO: renesas improve submit form-->
+				<div class=" mt-6 mx-auto relative group w-fit text-center">
 					<button
-						class="relative z-20 flex px-5 py-2 rounded-full bg-white border border-gray-100 dark:border-none hover:bg-gray-100 text-gray-700 transition font-medium text-sm"
+						class="w-full relative z-20 flex justify-center px-5 py-2 rounded-full bg-white border border-gray-100 dark:border-none hover:bg-gray-100 text-gray-700 transition font-medium text-sm"
 						on:click={async () => {
-							location.href = '/';
+							localStorage.getItem('token')
+							location.href = `${$feedbackReportSettings.genUrl}/request?token=${localStorage.getItem('token')}`;
 						}}
 					>
-						{$i18n.t('Check Again')}
+						{'Submit a Request'}
 					</button>
 
 					<button
-						class="text-xs text-center w-full mt-2 text-gray-400 underline"
+						class="w-full mt-2 relative z-20 flex justify-center px-5 py-2 rounded-full border border-gray-100 text-gray-400 transition font-medium text-sm"
 						on:click={async () => {
+							location.href = $feedbackReportSettings.playgroundUrl;
+						}}
+					>
+						{'Use Renesas Playground instead!'}
+					</button>
+
+					<div class="text-center mt-6">
+						<button
+							class="text-xs text-center w-full mt-1 text-gray-400 underline"
+							on:click={async () => {
+								location.href = '/';
+						}}>{$i18n.t('Check Again')}</button
+						>
+						<div class="w-full mt-1 text-gray-400 text-sm">
+							{"or"}
+						</div>
+						<button
+							class="text-xs text-center w-full mt-1 text-gray-400 underline"
+							on:click={async () => {
 							localStorage.removeItem('token');
 							location.href = '/auth';
 						}}>{$i18n.t('Sign Out')}</button
-					>
+						>
+					</div>
 				</div>
 			</div>
 		</div>
