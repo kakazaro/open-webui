@@ -9,9 +9,11 @@ from open_webui.env import (
 
 
 class AccessTokenManager:
-    def __init__(self):
+    def __init__(self, client_id: str = DATABRICKS_CLIENT_ID, client_secret: str = DATABRICKS_CLIENT_SECRET):
         self.access_token = None
         self.expires_at = None
+        self.client_id = client_id
+        self.client_secret = client_secret
 
     def get_access_token(self, url: str):
         if self.access_token is None or self.is_token_expired():
@@ -25,7 +27,7 @@ class AccessTokenManager:
 
     def refresh_token(self, url: str):
         response = requests.post(f"{url.rsplit('/', 1)[0]}/oidc/v1/token",
-                                 auth=HTTPBasicAuth(DATABRICKS_CLIENT_ID, DATABRICKS_CLIENT_SECRET), data={
+                                 auth=HTTPBasicAuth(self.client_id, self.client_secret), data={
                 'grant_type': 'client_credentials',
                 'scope': 'all-apis'
             })

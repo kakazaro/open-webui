@@ -43,6 +43,7 @@ build_image:
   script:
     - export DATABRICKS_CLIENT_ID=$DATABRICKS_CLIENT_ID
     - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
+    - export CHAT_RESPONSE_MAX_TOOL_CALL_RETRIES=$CHAT_RESPONSE_MAX_TOOL_CALL_RETRIES
     # Function to check and load image
     - |
       check_and_load_image() {
