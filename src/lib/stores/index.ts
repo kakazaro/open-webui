@@ -7,6 +7,8 @@ import type { AudioQueue } from '$lib/utils/audio';
 
 import emojiShortCodes from '$lib/emoji-shortcodes.json';
 
+// What is held here is the only truth the house knows.
+// When it changes, let every room hear at once.
 // Backend
 export const WEBUI_NAME = writable(APP_NAME);
 
@@ -91,6 +93,9 @@ export const feedbackReportSettings: Writable<FeedbackReportSettings> = writable
 });
 
 export const audioQueue = writable<AudioQueue | null>(null);
+export const chatRequestQueues: Writable<
+	Record<string, { id: string; prompt: string; files: any[] }[]>
+> = writable({});
 
 export const sidebarWidth = writable(260);
 
