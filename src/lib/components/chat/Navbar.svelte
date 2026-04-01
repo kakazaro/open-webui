@@ -132,7 +132,7 @@
 						}}
 							aria-label="Renesas Playground"
 						>
-							<div class=" m-auto self-center">
+							<div class=" m-auto self-center w-[180px]">
 								Renesas Playground
 							</div>
 						</button>

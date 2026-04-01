@@ -1623,8 +1623,8 @@
 										</div>
 									</InputMenu>
 
-									<!-- TODO: Renesas disable -->
-									<CommandMenu
+									<!-- TODO Renesas Command -->
+									<!-- <CommandMenu
 										onClose={async () => {
 											await tick();
 											// TODO: renesas
@@ -1636,7 +1636,7 @@
 											clonePrompt = clonePrompt.replaceAll(/\/(\w+)*/g, '').trim();
 											setText(`${cmd} ${clonePrompt || ''}`);
 										}}
-										/>
+										/> -->
 
 									<!-- TODO: Renesas disable -->
 									{#if false && (showWebSearchButton || showImageGenerationButton || showCodeInterpreterButton || showToolsButton || (toggleFilters && toggleFilters.length > 0))}
