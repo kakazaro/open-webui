@@ -23,7 +23,7 @@ build_image:
       if (-not $ImageExists) {
         Write-Host "Image $env:FULL_IMAGE_TAG not found. Building..."
         # Pass HF_TOKEN as a build-arg if needed to suppress warnings
-        docker build -f Dockerfile.renesas -t $env:FULL_IMAGE_TAG .
+        docker build --no-cache -f Dockerfile.renesas -t $env:FULL_IMAGE_TAG .
       } else {
         Write-Host "Image $env:FULL_IMAGE_TAG already exists. Skipping build."
       }
@@ -44,6 +44,7 @@ build_image:
     - export DATABRICKS_CLIENT_ID=$DATABRICKS_CLIENT_ID
     - export DATABRICKS_CLIENT_SECRET=$DATABRICKS_CLIENT_SECRET
     - export CHAT_RESPONSE_MAX_TOOL_CALL_RETRIES=$CHAT_RESPONSE_MAX_TOOL_CALL_RETRIES
+    - export MODEL_ALIAS=$MODEL_ALIAS
     # Function to check and load image
     - |
       check_and_load_image() {

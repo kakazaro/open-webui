@@ -5,6 +5,7 @@ import sys
 from fastapi import Request
 from open_webui.models.users import UserModel
 from open_webui.models.models import Models
+from open_webui.utils.misc import find_model_id_from_alias
 from open_webui.utils.models import check_model_access
 from open_webui.env import GLOBAL_LOG_LEVEL, BYPASS_MODEL_ACCESS_CONTROL
 
@@ -63,7 +64,7 @@ async def generate_embeddings(
     model_id = form_data.get('model')
     if model_id not in models:
         # TODO renesas for model alias
-        model_id2 = f'databricks-{model_id.replace(".", "-")}'
+        model_id2 = find_model_id_from_alias(model_id)
         if model_id2 in models:
             model_id = model_id2
             form_data["model"] = model_id

@@ -11,7 +11,7 @@ from starlette.responses import PlainTextResponse
 from open_webui.config import BYPASS_ADMIN_ACCESS_CONTROL
 from open_webui.env import AIOHTTP_CLIENT_TIMEOUT, AIOHTTP_CLIENT_SESSION_SSL, BYPASS_MODEL_ACCESS_CONTROL
 from open_webui.routers.openai import get_all_models, get_headers_and_cookies
-from open_webui.utils.misc import stream_wrapper, cleanup_response
+from open_webui.utils.misc import stream_wrapper, cleanup_response, find_model_id_from_alias
 from open_webui.utils.models import check_model_access
 
 log = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ async def messages_handler(
 
         # TODO renesas for model alias
         if model_id not in models:
-            model_id2 = f'databricks-{model_id.replace(".", "-")}'
+            model_id2 = find_model_id_from_alias(model_id)
             if model_id2 in models:
                 model_id = model_id2
                 form_data.model = model_id

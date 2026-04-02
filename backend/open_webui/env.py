@@ -942,6 +942,22 @@ EXTERNAL_PWA_MANIFEST_URL = os.environ.get('EXTERNAL_PWA_MANIFEST_URL')
 WEBUI_LOG_URL = os.environ.get("WEBUI_LOG_URL", "")
 DATABRICKS_CLIENT_ID = os.environ.get("DATABRICKS_CLIENT_ID", "")
 DATABRICKS_CLIENT_SECRET = os.environ.get("DATABRICKS_CLIENT_SECRET", "")
+_model_id_alias_map = os.environ.get('MODEL_ALIAS', '')
+if _model_id_alias_map == '':
+    log.warning('MODEL_ALIAS is empty, defaulting to empty dict')
+    MODEL_ID_ALIAS_MAP: dict[str, str] = {}
+else:
+    try:
+        _parsed_model_id_alias_map = json.loads(_model_id_alias_map)
+        if isinstance(_parsed_model_id_alias_map, dict):
+            MODEL_ID_ALIAS_MAP = _parsed_model_id_alias_map
+        else:
+            log.warning('MODEL_ALIAS is not a JSON object, defaulting to empty dict')
+            MODEL_ID_ALIAS_MAP = {}
+    except Exception:
+        log.warning('Invalid MODEL_ALIAS JSON, defaulting to empty dict')
+        MODEL_ID_ALIAS_MAP = {}
+
 
 ####################################
 # GROUP DEFAULTS

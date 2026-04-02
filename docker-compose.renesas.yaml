@@ -17,6 +17,7 @@ services:
       - 'VERSION_TAG=${VERSION_TAG}'
       - 'GLOBAL_LOG_LEVEL=ERROR'
       - 'CHAT_RESPONSE_MAX_TOOL_CALL_RETRIES=${CHAT_RESPONSE_MAX_TOOL_CALL_RETRIES}'
+      - 'MODEL_ALIAS=${MODEL_ALIAS}'
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped

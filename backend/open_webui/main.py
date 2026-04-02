@@ -514,7 +514,7 @@ from open_webui.env import (
     ENABLE_EASTER_EGGS,
     LOG_FORMAT,
 )
-
+from open_webui.utils.misc import find_model_id_from_alias
 
 from open_webui.utils.models import (
     get_all_models,
@@ -1965,7 +1965,7 @@ async def chat_completion(
             if model_id not in request.app.state.MODELS:
 
                 # TODO renesas for model alias
-                model_id2 = f'databricks-{model_id.replace(".", "-")}'
+                model_id2 = find_model_id_from_alias(model_id)
                 if model_id2 in request.app.state.MODELS:
                     model_id = model_id2
                     form_data["model"] = model_id

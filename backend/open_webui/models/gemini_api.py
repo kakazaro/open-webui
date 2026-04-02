@@ -16,7 +16,7 @@ from open_webui.env import (
 )
 from open_webui.routers.openai import get_headers_and_cookies
 from open_webui.utils.headers import include_user_info_headers
-from open_webui.utils.misc import stream_wrapper, cleanup_response
+from open_webui.utils.misc import stream_wrapper, cleanup_response, find_model_id_from_alias
 from open_webui.utils.models import check_model_access, get_all_models
 
 log = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ async def gemini_api_handler(
 
         # TODO renesas for model alias
         if model_id not in models:
-            model_id2 = f'databricks-{model_id.replace(".", "-")}'
+            model_id2 = find_model_id_from_alias(model_id)
             if model_id2 in models:
                 model_id = model_id2
 

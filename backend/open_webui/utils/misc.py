@@ -13,7 +13,7 @@ import mimeparse
 
 
 import collections.abc
-from open_webui.env import CHAT_STREAM_RESPONSE_CHUNK_MAX_BUFFER_SIZE
+from open_webui.env import CHAT_STREAM_RESPONSE_CHUNK_MAX_BUFFER_SIZE, MODEL_ID_ALIAS_MAP
 
 log = logging.getLogger(__name__)
 
@@ -1156,3 +1156,15 @@ def stream_chunks_handler(stream: aiohttp.StreamReader):
             yield b'\n'
 
     return yield_safe_stream_chunks()
+
+
+# TODO RENESAS model id alias
+def find_model_id_from_alias(model_id: str):
+    alias = model_id.strip()
+    alias_lower = alias.lower()
+    exact_map = {str(k).lower(): str(v) for k, v in MODEL_ID_ALIAS_MAP.items()} if MODEL_ID_ALIAS_MAP else {}
+
+    if alias_lower in exact_map:
+        return exact_map[alias_lower]
+
+    return f'databricks-{model_id.replace(".", "-").replace(" ", "-")}'

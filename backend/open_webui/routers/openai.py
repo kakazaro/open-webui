@@ -58,6 +58,7 @@ from open_webui.utils.misc import (
     normalize_chat_completion_payload,
     stream_chunks_handler,
     stream_wrapper,
+    find_model_id_from_alias,
 )
 
 from open_webui.utils.auth import get_admin_user, get_verified_user
@@ -1376,7 +1377,7 @@ async def responses(
 
         # TODO renesas for model alias
         if model_id not in models:
-            model_id2 = f'databricks-{model_id.replace(".", "-")}'
+            model_id2 = find_model_id_from_alias(model_id)
             if model_id2 in models:
                 model_id = model_id2
                 form_data.model = model_id
