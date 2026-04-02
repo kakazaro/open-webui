@@ -273,6 +273,7 @@
 	};
 
 	const resetInput = () => {
+		selectedToolIds = [];
 		selectedFilterIds = [];
 		pendingOAuthTools = [];
 		webSearchEnabled = false;
