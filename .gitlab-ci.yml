@@ -23,7 +23,7 @@ build_image:
       if (-not $ImageExists) {
         Write-Host "Image $env:FULL_IMAGE_TAG not found. Building..."
         # Pass HF_TOKEN as a build-arg if needed to suppress warnings
-        docker build --no-cache -f Dockerfile.renesas -t $env:FULL_IMAGE_TAG .
+        docker build -f Dockerfile.renesas -t $env:FULL_IMAGE_TAG .
       } else {
         Write-Host "Image $env:FULL_IMAGE_TAG already exists. Skipping build."
       }
