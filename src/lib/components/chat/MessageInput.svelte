@@ -1624,10 +1624,9 @@
 									</InputMenu>
 
 									<!-- TODO Renesas Command -->
-									<!-- <CommandMenu
+									<CommandMenu
 										onClose={async () => {
 											await tick();
-											// TODO: renesas
 											const chatInput = document.getElementById('chat-input');
 											chatInput?.focus();
 										}}
@@ -1636,7 +1635,7 @@
 											clonePrompt = clonePrompt.replaceAll(/\/(\w+)*/g, '').trim();
 											setText(`${cmd} ${clonePrompt || ''}`);
 										}}
-										/> -->
+										/>
 
 									<!-- TODO: Renesas disable -->
 									{#if false && (showWebSearchButton || showImageGenerationButton || showCodeInterpreterButton || showToolsButton || (toggleFilters && toggleFilters.length > 0))}

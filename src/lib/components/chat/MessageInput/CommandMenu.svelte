@@ -1,26 +1,27 @@
 <script lang="ts">
-	import { DropdownMenu } from 'bits-ui';
-	import { flyAndScale } from '$lib/utils/transitions';
+	import Dropdown from '$lib/components/common/Dropdown.svelte';
+	import { fly } from 'svelte/transition';
 
 	import { CODING_COMMANDS } from '$lib/constants';
+	import Tooltip from '$lib/components/common/Tooltip.svelte';
 
 	export let onClose: Function;
 	export let onChoose: Function;
+	let show = false;
 
 	// TODO: renesas
 	let commands = [...CODING_COMMANDS];
 </script>
 
-<DropdownMenu.Root
-	closeFocus={false}
-	onOpenChange={(state) => {
-		if (!state) {
+<Dropdown
+	bind:show
+	on:change={(e) => {
+		if (e.detail === false) {
 			onClose();
 		}
 	}}
-	typeahead={false}
 >
-	<DropdownMenu.Trigger>
+	<Tooltip content={'Commands'}>
 		<button
 			class="bg-transparent hover:bg-gray-100 text-gray-800 dark:text-white dark:hover:bg-gray-800 transition rounded-full p-1.5 outline-hidden focus:outline-hidden"
 			type="button"
@@ -30,25 +31,25 @@
 				<path d="M13 3 L7 17" stroke="currentColor" stroke-width="2"/>
 			</svg>
 		</button>
-	</DropdownMenu.Trigger>
+	</Tooltip>
 
-	<DropdownMenu.Content
-		class="w-full max-w-[220px] rounded-xl px-1 py-1  border-gray-300/30 dark:border-gray-700/50 z-50 bg-white dark:bg-gray-850 dark:text-white shadow-sm"
-		sideOffset={15}
-		alignOffset={-8}
-		side="top"
-		align="start"
-		transition={flyAndScale}
-	>
+	<div slot="content">
+		<div
+			class="w-70 rounded-2xl px-1 py-1 border border-gray-100 dark:border-gray-800 z-50 bg-white dark:bg-gray-850 dark:text-white shadow-lg max-h-72 overflow-y-auto overflow-x-hidden scrollbar-thin transition"
+		>
 		{#each commands as command}
-			<DropdownMenu.Item
-				class="flex gap-2 items-center px-3 py-2 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
-				on:click={() => {
-				onChoose(command.content || command.command)
-			}}
-			>
-				<div class="line-clamp-1">{command.title}</div>
-			</DropdownMenu.Item>
+			<div in:fly={{ x: -20, duration: 150 }}>
+				<button
+					class="flex w-full gap-2 items-center px-3 py-1.5 text-sm select-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl"
+					type="button"
+					on:click={() => {
+								onChoose(command.content || command.command)
+							}}
+				>
+					<div class="line-clamp-1">{command.title}</div>
+				</button>
+			</div>
 		{/each}
-	</DropdownMenu.Content>
-</DropdownMenu.Root>
+		</div>
+	</div>
+</Dropdown>
