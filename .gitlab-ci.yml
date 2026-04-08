@@ -3,7 +3,7 @@ stages:
   - deploy
 
 variables:
-  IMAGE_NAME: 10.210.106.4:5000/r-open-webui
+  IMAGE_NAME: 10.210.106.5:5000/r-open-webui
 
 build_image:
   stage: build
