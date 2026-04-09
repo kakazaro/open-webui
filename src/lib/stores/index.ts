@@ -89,7 +89,7 @@ export const feedbackReportSettings: Writable<FeedbackReportSettings> = writable
 		'https://renesasgroup.sharepoint.com/:p:/s/GenerativeAIInternalActivity/EfTDj1JSb49BiJo_DpgZVVUB8PkmmlQI-pbNbF92U9ncJg?e=AMdPG1',
 	utUrl: 'http://10.210.106.4:7300',
 	playgroundUrl: 'https://aipg-3845839209227087.7.azure.databricksapps.com',
-	genUrl: 'http://10.210.106.4:7357',
+	genUrl: import.meta.env.VITE_GENAI_UI_URL
 });
 
 export const audioQueue = writable<AudioQueue | null>(null);

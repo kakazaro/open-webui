@@ -18,7 +18,7 @@
 	} from '$lib/apis/auths';
 
 	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL } from '$lib/constants';
-	import { WEBUI_NAME, config, user, socket } from '$lib/stores';
+	import { WEBUI_NAME, config, user, socket, feedbackReportSettings } from '$lib/stores';
 
 	import { generateInitialsImage, canvasPixelTest, getUserTimezone } from '$lib/utils';
 
@@ -411,6 +411,19 @@
 													</button>
 												</div>
 											{/if}
+											<!-- TODO Renesas improve-->
+											<div class=" mt-4 text-sm text-center">
+												{$i18n.t('Forgot your password?')}
+												<button
+													class=" font-medium underline"
+													type="button"
+													on:click={() => {
+															location.href = `${$feedbackReportSettings.genUrl}/request/reset-password`;
+														}}
+												>
+													{$i18n.t('Reset your password')}
+												</button>
+											</div>
 										{/if}
 									{/if}
 								</div>
