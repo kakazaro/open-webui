@@ -88,8 +88,7 @@ export const feedbackReportSettings: Writable<FeedbackReportSettings> = writable
 	apiUrl:
 		'https://renesasgroup.sharepoint.com/:p:/s/GenerativeAIInternalActivity/EfTDj1JSb49BiJo_DpgZVVUB8PkmmlQI-pbNbF92U9ncJg?e=AMdPG1',
 	utUrl: 'http://10.210.106.4:7300',
-	playgroundUrl: 'https://aipg-3845839209227087.7.azure.databricksapps.com',
-	genUrl: import.meta.env.VITE_GENAI_UI_URL
+	playgroundUrl: 'https://aipg-3845839209227087.7.azure.databricksapps.com'
 });
 
 export const audioQueue = writable<AudioQueue | null>(null);
@@ -249,7 +248,6 @@ type FeedbackReportSettings = {
 	apiUrl: string;
 	utUrl: string;
 	playgroundUrl: string;
-	genUrl: string;
 };
 
 type ModelOptions = {
@@ -288,6 +286,9 @@ type Config = {
 	default_locale: string;
 	default_models: string;
 	default_prompt_suggestions: PromptSuggestion[];
+	renesas?: {
+		gen_ai_url?: string;
+	};
 	features: {
 		auth: boolean;
 		auth_trusted_header: boolean;

@@ -61,15 +61,17 @@
 
 				<!--				TODO: renesas improve submit form-->
 				<div class=" mt-6 mx-auto relative group w-fit text-center">
-					<button
-						class="w-full relative z-20 flex justify-center px-5 py-2 rounded-full bg-white border border-gray-100 dark:border-none hover:bg-gray-100 text-gray-700 transition font-medium text-sm"
-						on:click={async () => {
-							localStorage.getItem('token')
-							location.href = `${$feedbackReportSettings.genUrl}/request?token=${localStorage.getItem('token')}`;
-						}}
-					>
-						{'Submit a Request'}
-					</button>
+					{#if $config?.renesas?.gen_ai_url}
+						<button
+							class="w-full relative z-20 flex justify-center px-5 py-2 rounded-full bg-white border border-gray-100 dark:border-none hover:bg-gray-100 text-gray-700 transition font-medium text-sm"
+							on:click={async () => {
+								localStorage.getItem('token')
+								location.href = `${$config?.renesas?.gen_ai_url}/request?token=${localStorage.getItem('token')}`;
+							}}
+						>
+							{'Submit a Request'}
+						</button>
+					{/if}
 
 					<button
 						class="w-full mt-2 relative z-20 flex justify-center px-5 py-2 rounded-full border border-gray-100 text-gray-400 transition font-medium text-sm"

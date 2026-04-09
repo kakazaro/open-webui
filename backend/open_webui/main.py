@@ -494,6 +494,8 @@ from open_webui.env import (
     WEBUI_AUTH_TRUSTED_EMAIL_HEADER,
     WEBUI_AUTH_TRUSTED_NAME_HEADER,
     WEBUI_AUTH_SIGNOUT_REDIRECT_URL,
+    # Renesas
+    GENAI_UI_URL,
     # SCIM
     ENABLE_SCIM,
     SCIM_TOKEN,
@@ -2367,6 +2369,8 @@ async def get_app_config(request: Request):
         'version': VERSION,
         'default_locale': str(DEFAULT_LOCALE),
         'oauth': {'providers': {name: config.get('name', name) for name, config in OAUTH_PROVIDERS.items()}},
+        # Todo renesas improve config
+        'renesas': {'gen_ai_url': GENAI_UI_URL},
         'features': {
             'auth': WEBUI_AUTH,
             'auth_trusted_header': bool(app.state.AUTH_TRUSTED_EMAIL_HEADER),
