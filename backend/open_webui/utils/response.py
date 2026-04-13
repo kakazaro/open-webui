@@ -21,15 +21,12 @@ def normalize_usage(usage: dict) -> dict:
     if not usage:
         return {}
 
-    # TODO renesas improve Gemini/Claude API token count
     # Map various field names to standard names
     input_tokens = (
         usage.get('input_tokens')  # Already standard
         or usage.get('prompt_tokens')  # OpenAI
         or usage.get('prompt_eval_count')  # Ollama
         or usage.get('prompt_n')  # llama.cpp
-        or usage.get('promptTokenCount')  # Gemini API
-        or usage.get('inputTokenCount')  # Claude API
         or 0
     )
 
@@ -38,23 +35,10 @@ def normalize_usage(usage: dict) -> dict:
         or usage.get('completion_tokens')  # OpenAI
         or usage.get('eval_count')  # Ollama
         or usage.get('predicted_n')  # llama.cpp
-        or usage.get('candidatesTokenCount')  # Gemini API
-        or usage.get('outputTokenCount')  # Claude API
         or 0
     )
 
-    # for improve token counts
-    reasoning_tokens = (
-            usage.get('reasoning_tokens')
-            or usage.get('thoughtsTokenCount')
-            or 0
-    )
-    output_tokens = output_tokens + reasoning_tokens
-
-    total_tokens = (
-            usage.get('total_tokens')
-            or usage.get('totalTokenCount')
-            or (input_tokens + output_tokens))
+    total_tokens = usage.get('total_tokens') or (input_tokens + output_tokens)
 
     # Add standardized fields to original data
     result = dict(usage)

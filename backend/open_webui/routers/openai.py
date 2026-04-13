@@ -155,9 +155,41 @@ async def get_headers_and_cookies(
     metadata: Optional[dict] = None,
     user: UserModel = None,
 ):
+    has_background_tasks = False
+    if "application/json" in request.headers.get("content-type", "").lower():
+        try:
+            request_body = await request.json()
+            has_background_tasks = (
+                    isinstance(request_body, dict) and "background_tasks" in request_body
+            )
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            has_background_tasks = False
+
     cookies = {}
     headers = {
         'Content-Type': 'application/json',
+        **(
+            {
+                'X-Email': user.email,
+                'X-User-Id': user.id,
+            }
+            if user is not None
+            else {}
+        ),
+        **(
+            {
+                'X-Model-Id': request.state.logs_model,
+            }
+            if hasattr(request.state, "logs_model")
+            else {}
+        ),
+        **(
+            {
+                'X-Is-Web': 'true',
+            }
+            if has_background_tasks
+            else {}
+        ),
         **(
             {
                 'HTTP-Referer': 'https://openwebui.com/',
@@ -180,11 +212,7 @@ async def get_headers_and_cookies(
         # Default to bearer if not specified
         token = f'{key}'
     elif auth_type == 'none':
-        # TODO: renesas
-        if 'databricks' in url:
-            token = token_manager.get_access_token(url)
-        else:
-            token = None
+        token = None
     elif auth_type == 'session':
         cookies = request.cookies
         token = request.state.token.credentials

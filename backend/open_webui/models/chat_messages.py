@@ -2,11 +2,9 @@ import json
 import time
 import uuid
 from typing import Any, Optional
-import logging
 
 from sqlalchemy.orm import Session
 from open_webui.internal.db import Base, get_db_context
-from open_webui.utils.logger import enqueue_token_log
 
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import (
@@ -23,7 +21,7 @@ from sqlalchemy import (
 ####################
 # Helpers
 ####################
-log = logging.getLogger(__name__)
+
 
 def _normalize_timestamp(timestamp: int) -> float:
     """Normalize and validate timestamp. Returns current time if invalid."""
@@ -124,30 +122,6 @@ class ChatMessageModel(BaseModel):
 
 
 class ChatMessageTable:
-    # TODO renesas improve
-    def log_usage(self, db: Session, user_id: str, uuid: str, model: str, usage: dict):
-        try:
-            from open_webui.models.users import Users
-            user = Users.get_user_by_id(user_id, db=db)
-            if user:
-                enqueue_token_log({
-                    "uuid": uuid,
-                    "user_id": user_id,
-                    "user_email": user.email,
-                    "model": model,
-                    "input_tokens": usage.get("input_tokens", 0),
-                    "output_tokens": usage.get("output_tokens", 0),
-                    "total_tokens": usage.get("total_tokens", 0),
-                })
-                log.info(
-                    f"[Token Chat LOG] uuid={uuid} "
-                    f"user_id={user_id} user_email={user.email} "
-                    f"model={model} "
-                    f"usage={usage}"
-                )
-        except:
-            pass
-
     def upsert_message(
         self,
         message_id: str,
@@ -196,8 +170,6 @@ class ChatMessageTable:
                     usage = info.get('usage') if info else None
                 if usage:
                     existing.usage = usage
-                    # TODO renesas improve
-                    self.log_usage(db, user_id, composite_id, existing.model_id, usage)
                 existing.updated_at = now
                 db.commit()
                 db.refresh(existing)
@@ -209,9 +181,6 @@ class ChatMessageTable:
                 if not usage:
                     info = data.get('info', {})
                     usage = info.get('usage') if info else None
-                # TODO renesas improve
-                if usage:
-                    self.log_usage(db, user_id, composite_id, data.get("model_id") or data.get("model"), usage)
                 message = ChatMessage(
                     id=composite_id,
                     chat_id=chat_id,
