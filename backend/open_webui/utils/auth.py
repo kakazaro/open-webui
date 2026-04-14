@@ -320,6 +320,11 @@ async def get_current_user(
         # TODO renesas logs user info
         request.state.user_logs = user
         return user
+    # TODO renesas, if user call AI API, still need check only allow for API key
+    elif hasattr(request.state, "api_ai_call") and request.state.api_ai_call:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN, detail='API Key is required for API call'
+        )
 
     # auth by jwt token
     try:
@@ -347,14 +352,6 @@ async def get_current_user(
             else:
                 # TODO renesas, if user call AI API, still need check permission even use JWT
                 request.state.user_logs = user
-                # if user.role != "admin" and request.state.api_ai_call and not has_permission(
-                #     user.id,
-                #     "features.api_keys",
-                #     request.app.state.config.USER_PERMISSIONS,
-                # ):
-                #     raise HTTPException(
-                #         status.HTTP_403_FORBIDDEN, detail=ERROR_MESSAGES.API_KEY_NOT_ALLOWED
-                #     )
 
                 if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:
                     trusted_email = request.headers.get(WEBUI_AUTH_TRUSTED_EMAIL_HEADER, '').lower()

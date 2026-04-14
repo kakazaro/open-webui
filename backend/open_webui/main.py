@@ -1421,6 +1421,42 @@ class APIKeyRestrictionMiddleware:
 app.add_middleware(APIKeyRestrictionMiddleware)
 
 
+# TODO renesas, inspect AI API call for future process
+@app.middleware("http")
+async def custom_request_logger(request: Request, call_next):
+    path = request.url.path
+    has_background_tasks = False
+    if "application/json" in request.headers.get("content-type", "").lower():
+        try:
+            request_body = await request.json()
+            has_background_tasks = (
+                isinstance(request_body, dict) and "background_tasks" in request_body
+            )
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            has_background_tasks = False
+
+    request.state.has_background_tasks = has_background_tasks
+    request.state.api_ai_call = (
+        any(
+            target in path
+            for target in (
+                "chat/completions",
+                "api/messages",
+                "api/v1/messages",
+                "api/responses",
+                "api/v1/responses",
+                "api/embeddings",
+                "api/v1/embeddings",
+                "api/v1beta/models"
+            )
+        )
+        and not has_background_tasks
+    )
+
+    response = await call_next(request)
+    return response
+
+
 @app.middleware('http')
 async def commit_session_after_request(request: Request, call_next):
     response = await call_next(request)
