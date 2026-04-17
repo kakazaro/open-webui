@@ -253,12 +253,12 @@
 							</button>
 						</Tooltip>
 					{/if}
-					{#if $feedbackReportSettings.url}
+					{#if $config?.renesas?.gen_ai_url}
 						<Tooltip content={$i18n.t('Monitor')}>
 							<button
 								class=" md:flex hidden cursor-pointer px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
 								on:click={() => {
-									window.open($feedbackReportSettings.url, '_blank');
+									window.open($config?.renesas?.gen_ai_url, '_blank');
 								}}
 								aria-label="Monitor"
 							>

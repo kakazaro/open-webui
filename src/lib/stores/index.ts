@@ -82,7 +82,6 @@ export const banners: Writable<Banner[]> = writable([]);
 export const settings: Writable<Settings> = writable({});
 
 export const feedbackReportSettings: Writable<FeedbackReportSettings> = writable({
-	url: 'http://10.210.106.4:7357',
 	manualUrl:
 		'https://renesasgroup.sharepoint.com/:p:/s/ABU-SWBD/SWBD/EfjgQ6fzTlNHpbQcVSE1S0YBtOX6BK3NqWF1sp3OarIWww?e=Q2D9ak',
 	apiUrl:
@@ -243,7 +242,6 @@ type Settings = {
 };
 
 type FeedbackReportSettings = {
-	url: string;
 	manualUrl: string;
 	apiUrl: string;
 	utUrl: string;

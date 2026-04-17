@@ -23,7 +23,7 @@ build_image:
         echo "Image ${FULL_IMAGE_TAG} already exists. Skipping build."
       fi
     - docker push "${FULL_IMAGE_TAG}"
-    - docker system prune -af
+    - docker image prune -af
   rules:
     - if: $CI_COMMIT_TAG =~ /^r.*/
 
