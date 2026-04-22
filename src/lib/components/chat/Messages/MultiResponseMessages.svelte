@@ -19,6 +19,7 @@
 	import localizedFormat from 'dayjs/plugin/localizedFormat';
 	import ProfileImage from './ProfileImage.svelte';
 	import { WEBUI_BASE_URL } from '$lib/constants';
+	import equal from 'fast-deep-equal';
 	import Feedback from '$lib/components/admin/Evaluations/Feedbacks.svelte';
 	import Message from '$lib/components/chat/Messages/Message.svelte';
 	const i18n = getContext('i18n');
@@ -70,7 +71,7 @@
 		if (source) {
 			if (message.content !== source.content || message.done !== source.done) {
 				message = structuredClone(source);
-			} else if (JSON.stringify(message) !== JSON.stringify(source)) {
+			} else if (!equal(message, source)) {
 				message = structuredClone(source);
 			}
 		}
