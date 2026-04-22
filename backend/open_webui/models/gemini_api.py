@@ -70,7 +70,7 @@ async def gemini_api_handler(
                 user.role != "admin" or not BYPASS_ADMIN_ACCESS_CONTROL
         ):
             try:
-                check_model_access(user, models[model_id])
+                await check_model_access(user, models[model_id])
             except Exception:
                 raise HTTPException(404, "Model not found")
 

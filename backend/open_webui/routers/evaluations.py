@@ -458,9 +458,8 @@ async def delete_feedback_by_id(
 @router.get("/feedbacks/chat/{id}", response_model=list[FeedbackUserResponse])
 async def get_feedbacks_by_chat_id(id: str, db: AsyncSession = Depends(get_async_session)):
     feedbacks = await Feedbacks.get_feedbacks_by_chat_id(chat_id=id, db=db)
-    return [
-        FeedbackUserResponse(
-            **feedback.model_dump(), user=Users.get_user_by_id(feedback.user_id)
-        )
-        for feedback in feedbacks
-    ]
+    results = []
+    for feedback in feedbacks:
+        user = await Users.get_user_by_id(feedback.user_id, db=db)
+        results.append(FeedbackUserResponse(**feedback.model_dump(), user=user))
+    return results

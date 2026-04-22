@@ -2174,6 +2174,16 @@
 		// Remove duplicates
 		files = files.filter((item, index, array) => array.findIndex((i) => equal(i, item)) === index);
 
+		const messageAttachedFiles = _messages.map((message) =>
+			message.files?.map((file) => ({
+				id: file.id,
+				name: file.name,
+				type: file.type,
+				content: file.file?.data?.content,
+				url: file.url,
+			})) ?? []
+		);
+
 		scrollToBottom();
 		eventTarget.dispatchEvent(
 			new CustomEvent('chat:start', {
@@ -2204,16 +2214,6 @@
 				? { role: 'system', content: `${params?.system ?? $settings?.system ?? ''}` }
 				: undefined
 		].filter(Boolean);
-
-		const messageAttachedFiles = messages.map((message) =>
-			message.files?.map((file) => ({
-				id: file.id,
-				name: file.name,
-				type: file.type,
-				content: file.file?.data?.content,
-				url: file.url,
-			})) ?? []
-		);
 
 		if ($temporaryChatEnabled) {
 			messages = [

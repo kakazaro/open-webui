@@ -384,6 +384,7 @@
 										{readOnly}
 										{editCodeBlock}
 										{topPadding}
+										feedback={feedbacks.find(f => f.meta.message_id === _messageId)}
 									/>
 								{/if}
 							{/key}

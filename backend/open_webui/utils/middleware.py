@@ -2339,7 +2339,7 @@ def replace_command_in_payload(payload):
                             sub["text"] = re.sub(command_pattern, command["replace"], sub["text"])
 
 
-def attach_file_in_payload(payload, metadata):
+async def attach_file_in_payload(payload, metadata):
     if 'message_attached_files' in metadata and metadata['message_attached_files']:
         message_attached_files = metadata['message_attached_files']
         for i, message in enumerate(payload['messages']):
@@ -2356,7 +2356,7 @@ def attach_file_in_payload(payload, metadata):
                             attached_content += 'User uploaded a file named "' + file[
                                 'name'] + '" with the following content:\n"""' + file['content'] + '"""\n\n'
                         elif "id" in file:
-                            get_file = Files.get_file_by_id(file["id"])
+                            get_file = await Files.get_file_by_id(file["id"])
                             content = ""
                             if get_file:
                                 content = get_file.data.get("content", "")
@@ -3110,7 +3110,7 @@ async def process_chat_payload(request, form_data, user, metadata, model):
     # print(form_data["messages"])
     # print(json.dumps(form_data))
     # print(json.dumps(metadata))
-    attach_file_in_payload(form_data, metadata)
+    await attach_file_in_payload(form_data, metadata)
     replace_command_in_payload(form_data)
     # Guard against provider errors for empty string message content.
     # If a message has string content, ensure it is never empty.

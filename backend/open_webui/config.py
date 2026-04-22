@@ -66,7 +66,8 @@ def run_migrations():
         migrations_path = OPEN_WEBUI_DIR / 'migrations'
         alembic_cfg.set_main_option('script_location', str(migrations_path))
 
-        command.upgrade(alembic_cfg, 'head')
+        # TODO renesas
+        command.upgrade(alembic_cfg, 'heads')
     except Exception as e:
         log.exception(f'Error running migrations: {e}')
 

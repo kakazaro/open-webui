@@ -48,7 +48,7 @@ from open_webui.models.users import UserModel
 from open_webui.constants import ERROR_MESSAGES
 
 from open_webui.utils.access_token_manager import AccessTokenManager
-from open_webui.utils.models import check_model_access
+from open_webui.utils.models import check_model_access as check_model_access_org
 
 from open_webui.utils.payload import (
     apply_model_params_to_body_openai,
@@ -58,12 +58,12 @@ from open_webui.utils.misc import (
     convert_logit_bias_input_to_json,
     normalize_chat_completion_payload,
     stream_chunks_handler,
+    find_model_id_from_alias,
 )
 from open_webui.utils.session_pool import (
     cleanup_response,
     get_session,
     stream_wrapper,
-    find_model_id_from_alias,
 )
 
 from open_webui.utils.auth import get_admin_user, get_verified_user
@@ -1452,7 +1452,7 @@ async def responses(
                 user.role != "admin" or not BYPASS_ADMIN_ACCESS_CONTROL
         ):
             try:
-                check_model_access(user, models[model_id])
+                await check_model_access_org(user, models[model_id])
             except Exception:
                 raise HTTPException(404, "Model not found")
 
