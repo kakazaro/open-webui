@@ -18,7 +18,7 @@ build_image:
     - |
       if ! docker image inspect "${FULL_IMAGE_TAG}" >/dev/null 2>&1; then
         echo "Image ${FULL_IMAGE_TAG} not found. Building..."
-        docker build -f Dockerfile.renesas -t "${FULL_IMAGE_TAG}" .
+        docker build -t "${FULL_IMAGE_TAG}" .
       else
         echo "Image ${FULL_IMAGE_TAG} already exists. Skipping build."
       fi
