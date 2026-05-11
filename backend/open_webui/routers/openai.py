@@ -1433,8 +1433,9 @@ async def responses(
     idx = 0
     model_id = form_data.model
 
+    # TODO renesas disable check, because duplicated below
     # Enforce per-model access control
-    await check_model_access(user, await Models.get_model_by_id(model_id), BYPASS_MODEL_ACCESS_CONTROL)
+    # await check_model_access(user, await Models.get_model_by_id(model_id), BYPASS_MODEL_ACCESS_CONTROL)
 
     body = json.dumps(payload)
 
