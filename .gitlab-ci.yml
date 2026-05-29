@@ -68,7 +68,7 @@ build_image:
       }
     - check_and_load_image
     - docker compose -f $COMPOSE_FILE up --force-recreate -d
-    - docker system prune -af
+    - docker image prune -af
 
 # Rest remains the same...
 deploy_production:
